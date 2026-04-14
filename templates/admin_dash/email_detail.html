@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Email Blast Detail{% endblock %}
+{% block page_title %}Email Blast Detail{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center gap-2">
+    <a href="{% url 'email_list' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h5 class="text-white mb-0">{{ blast.subject|truncatechars:40 }}</h5>
+  </div>
+  <div class="d-flex gap-2">
+    {% if blast.status == 'draft' or blast.status == 'scheduled' or blast.status == 'sending' %}
+    <a href="{% url 'email_cancel' blast.pk %}" class="btn btn-sm btn-danger"
+       onclick="return confirm('Cancel this email blast?')">
+      <i class="bi bi-x-circle"></i> Cancel
+    </a>
+    {% endif %}
+    {% if blast.status == 'draft' or blast.status == 'scheduled' %}
+    <a href="{% url 'email_send' blast.pk %}" class="btn btn-sm btn-success"
+       onclick="return confirm('Send this blast now?')">
+      <i class="bi bi-send"></i> Send Now
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="data-card mb-3">
+      <div class="data-card-header">
+        <h5 class="data-card-title mb-0">Email Content</h5>
+      </div>
+      <div class="p-3">
+        <div class="mb-2">
+          <div class="text-muted small text-uppercase mb-1">Subject</div>
+          <div class="fw-semibold text-white">{{ blast.subject }}</div>
+        </div>
+        <hr class="border-secondary border-opacity-25">
+        <div>
+          <div class="text-muted small text-uppercase mb-1">Body (Text)</div>
+          <pre class="mb-0" style="white-space:pre-wrap;font-size:.85rem;color:#e5e7eb;background:rgba(15,23,42,.8);border-radius:8px;padding:0.75rem;border:1px solid rgba(148,163,184,.4);">{{ blast.body_text }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="data-card mb-3">
+      <div class="data-card-header">
+        <h5 class="data-card-title mb-0">Status & Timing</h5>
+      </div>
+      <div class="p-3 small">
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Status</div>
+          <span class="badge badge-{% if blast.status == 'sent' %}active{% elif blast.status == 'failed' %}inactive{% elif blast.status == 'cancelled' %}warning{% else %}pending{% endif %} rounded-pill">
+            {{ blast.status|title }}
+          </span>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Scheduled For</div>
+          <div>{{ blast.scheduled_at|default:"—" }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Sent At</div>
+          <div>{{ blast.sent_at|default:"—" }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Created At</div>
+          <div>{{ blast.created_at }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Sent / Failed</div>
+          <div>
+            <span class="text-success">{{ blast.total_sent }}</span> sent,
+            <span class="text-danger">{{ blast.total_failed }}</span> failed
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-card">
+      <div class="data-card-header">
+        <h5 class="data-card-title mb-0">Recipients</h5>
+      </div>
+      <div class="p-3 small">
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Mode</div>
+          <div>{{ blast.get_recipient_type_display|default:blast.recipient_type }}</div>
+        </div>
+
+        {% if target_locations %}
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Target Locations ({{ target_locations|length }})</div>
+          <ul class="mb-0 ps-3">
+            {% for loc in target_locations|slice:":10" %}
+            <li>{{ loc.name }}{% if loc.city %} – {{ loc.city }}{% endif %}</li>
+            {% endfor %}
+            {% if target_locations|length > 10 %}
+            <li>+ {{ target_locations|length|add:"-10" }} more…</li>
+            {% endif %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if target_contacts %}
+        <div class="mb-2">
+          <div class="text-muted text-uppercase mb-1">Target Contacts ({{ target_contacts|length }})</div>
+          <ul class="mb-0 ps-3">
+            {% for c in target_contacts|slice:":10" %}
+            <li>{{ c.full_name }}{% if c.email %} – {{ c.email }}{% endif %}</li>
+            {% endfor %}
+            {% if target_contacts|length > 10 %}
+            <li>+ {{ target_contacts|length|add:"-10" }} more…</li>
+            {% endif %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if not target_locations and not target_contacts %}
+        <div class="text-muted">Recipients are determined dynamically (e.g. all subscribed contacts).</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

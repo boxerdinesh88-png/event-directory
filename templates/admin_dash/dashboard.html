@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – Event Directory and Logistic{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="stat-icon" style="background:rgba(99,102,241,.15);">
+          <i class="bi bi-geo-alt-fill" style="color:#818cf8;"></i>
+        </div>
+        <span class="badge badge-active rounded-pill">{{ stats.active_locations }} active</span>
+      </div>
+      <div class="stat-value" style="color:#818cf8;">{{ stats.locations }}</div>
+      <div class="stat-label">Total Locations</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="stat-icon" style="background:rgba(16,185,129,.15);">
+          <i class="bi bi-people-fill" style="color:#34d399;"></i>
+        </div>
+        <span class="badge badge-active rounded-pill">{{ stats.subscribed }} subscribed</span>
+      </div>
+      <div class="stat-value" style="color:#34d399;">{{ stats.contacts }}</div>
+      <div class="stat-label">Contacts</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="stat-icon" style="background:rgba(239,68,68,.15);">
+          <i class="bi bi-envelope-fill" style="color:#f87171;"></i>
+        </div>
+        <span class="badge badge-sent rounded-pill">{{ stats.sent_blasts }} sent</span>
+      </div>
+      <div class="stat-value" style="color:#f87171;">{{ stats.email_blasts }}</div>
+      <div class="stat-label">Email Blasts</div>
+    </div>
+  </div>
+</div>
+
+<!-- Promotion Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <a href="{% url 'email_templates' %}" class="text-decoration-none">
+      <div class="stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+            <i class="bi bi-file-earmark-richtext-fill" style="color:#fbbf24;"></i>
+          </div>
+        </div>
+        <div class="stat-value" style="color:#fbbf24;font-size:1.5rem;">{{ stats.template_count }}</div>
+        <div class="stat-label">Email Templates</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{% url 'sms_blast' %}" class="text-decoration-none">
+      <div class="stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="stat-icon" style="background:rgba(239,68,68,.15);">
+            <i class="bi bi-chat-dots-fill" style="color:#f87171;"></i>
+          </div>
+        </div>
+        <div class="stat-value" style="color:#f87171;font-size:1.5rem;">{{ stats.sms_blasts }}</div>
+        <div class="stat-label">SMS Blasts Sent</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{% url 'social_media' %}" class="text-decoration-none">
+      <div class="stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="stat-icon" style="background:rgba(129,140,248,.15);">
+            <i class="bi bi-share-fill" style="color:#818cf8;"></i>
+          </div>
+        </div>
+        <div class="stat-value" style="color:#818cf8;font-size:1.5rem;">{{ stats.social_posts }}</div>
+        <div class="stat-label">Social Posts Live</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{% url 'webinar_dashboard' %}" class="text-decoration-none">
+      <div class="stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="stat-icon" style="background:rgba(102,126,234,.15);">
+            <i class="bi bi-play-circle-fill" style="color:#667eea;"></i>
+          </div>
+        </div>
+        <div class="stat-value" style="color:#667eea;font-size:1.5rem;"><i class="bi bi-play-circle"></i></div>
+        <div class="stat-label">Webinar System</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-lightning-fill text-warning me-2"></i>Quick Actions</div>
+      </div>
+      <div class="p-3 d-flex flex-wrap gap-2">
+        <a href="{% url 'location_add' %}" class="btn btn-sm btn-gold"><i class="bi bi-plus-lg me-1"></i>Add Location</a>
+        <a href="{% url 'contact_add' %}" class="btn btn-sm btn-outline-success"><i class="bi bi-person-plus me-1"></i>Add Contact</a>
+        <a href="{% url 'email_compose' %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-envelope-plus me-1"></i>Email Blast</a>
+        <a href="{% url 'promotion_hub' %}" class="btn btn-sm btn-outline-warning"><i class="bi bi-rocket-takeoff-fill me-1"></i>Promote Event</a>
+        <a href="{% url 'email_templates' %}" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark-richtext me-1"></i>Templates</a>
+        <a href="{% url 'sms_blast' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-chat-dots me-1"></i>SMS Blast</a>
+        <button class="btn btn-sm btn-outline-secondary" onclick="runDedupe()"><i class="bi bi-arrow-repeat me-1"></i>Deduplicate</button>
+        <a href="{% url 'import_data' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload me-1"></i>Import Excel</a>
+        <a href="{% url 'reports' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-bar-chart-line me-1"></i>Reports</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts + Tables Row -->
+<div class="row g-3 mb-4">
+  <!-- Locations by City Chart -->
+  <div class="col-lg-8">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Locations by City</div>
+      </div>
+      <div class="p-3">
+        <canvas id="cityChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Locations by Type Chart -->
+  <div class="col-lg-4">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-pie-chart-fill text-warning me-2"></i>By Type</div>
+      </div>
+      <div class="p-3 d-flex align-items-center justify-content-center">
+        <canvas id="typeChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Locations + Contacts -->
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Recent Locations</div>
+        <a href="{% url 'location_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>Name</th><th>City</th><th>Type</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for loc in recent_locations %}
+            <tr>
+              <td class="fw-semibold">{{ loc.name|truncatechars:25 }}</td>
+              <td>{{ loc.city }}</td>
+              <td><span class="badge rounded-pill" style="background:rgba(99,102,241,.15);color:#818cf8;">{{ loc.get_type_display }}</span></td>
+              <td><span class="badge badge-{{ loc.status }} rounded-pill">{{ loc.get_status_display }}</span></td>
+              <td>
+                <a href="{% url 'location_edit' loc.pk %}" class="btn btn-xs btn-sm btn-outline-secondary py-0 px-2" style="font-size:.7rem;">Edit</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-3">No locations yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-people-fill text-success me-2"></i>Recent Contacts</div>
+        <a href="{% url 'contact_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Sub</th><th></th></tr></thead>
+          <tbody>
+            {% for c in recent_contacts %}
+            <tr>
+              <td class="fw-semibold">{{ c.full_name|truncatechars:20 }}</td>
+              <td class="text-muted small">{{ c.email|truncatechars:22 }}</td>
+              <td>{{ c.city }}</td>
+              <td>
+                {% if c.is_subscribed %}<i class="bi bi-check-circle-fill text-success"></i>
+                {% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+              </td>
+              <td>
+                <a href="{% url 'contact_edit' c.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.7rem;">Edit</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-3">No contacts yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const cityData = {{ by_city|safe }};
+const typeData = {{ by_type|safe }};
+
+// City bar chart — each bar gets a unique color
+const cityColors = [
+  {bg:'rgba(249,115,22,.6)',  border:'#f97316'},
+  {bg:'rgba(129,140,248,.6)', border:'#818cf8'},
+  {bg:'rgba(52,211,153,.6)',  border:'#34d399'},
+  {bg:'rgba(248,113,113,.6)', border:'#f87171'},
+  {bg:'rgba(251,191,36,.6)',  border:'#fbbf24'},
+  {bg:'rgba(167,139,250,.6)', border:'#a78bfa'},
+  {bg:'rgba(56,189,248,.6)',  border:'#38bdf8'},
+  {bg:'rgba(251,146,60,.6)',  border:'#fb923c'},
+  {bg:'rgba(74,222,128,.6)',  border:'#4ade80'},
+  {bg:'rgba(244,114,182,.6)', border:'#f472b6'},
+  {bg:'rgba(45,212,191,.6)',  border:'#2dd4bf'},
+  {bg:'rgba(148,163,184,.6)', border:'#94a3b8'},
+];
+new Chart(document.getElementById('cityChart'), {
+  type: 'bar',
+  data: {
+    labels: cityData.map(d=>d.city||'Unknown'),
+    datasets:[{
+      label:'Locations',
+      data: cityData.map(d=>d.count),
+      backgroundColor: cityData.map((_,i)=>cityColors[i%cityColors.length].bg),
+      borderColor: cityData.map((_,i)=>cityColors[i%cityColors.length].border),
+      borderWidth:1,
+      borderRadius:6,
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#9ca3af',font:{size:11}}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#9ca3af',stepSize:1}}
+    }
+  }
+});
+
+// Type doughnut chart
+const typeColors = {'apartment':'#818cf8','venue':'#34d399','club':'#f87171','restaurant':'#fbbf24','hotel':'#60a5fa','park':'#a78bfa','other':'#9ca3af'};
+new Chart(document.getElementById('typeChart'), {
+  type: 'doughnut',
+  data: {
+    labels: typeData.map(d=>d.type),
+    datasets:[{
+      data: typeData.map(d=>d.count),
+      backgroundColor: typeData.map(d=>typeColors[d.type]||'#9ca3af'),
+      borderWidth:2, borderColor:'#111827',
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{
+      legend:{position:'bottom',labels:{color:'#9ca3af',font:{size:11},padding:10}},
+    },
+    cutout:'65%',
+  }
+});
+</script>
+<script>
+async function runDedupe() {
+  if (!confirm('This will merge duplicate locations and contacts. Continue?')) return;
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Running...';
+  try {
+    const res = await fetch('/dashboard/api/dedupe/');
+    const data = await res.json();
+    alert(`Deduplication complete!\nLocations merged: ${data.locations_deleted}\nContacts merged: ${data.contacts_deleted}`);
+    location.reload();
+  } catch(e) {
+    alert('Error: ' + e);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Deduplicate';
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,833 @@
+{% extends 'base.html' %}
+{% block title %}Social Media – Event Directory and Logistic{% endblock %}
+{% block page_title %}Social Media Posting{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h5 class="text-white mb-1">Social Media Integration</h5>
+    <p class="text-muted small mb-0">Connect platforms and auto-post events to your social channels</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#accountsModal">
+      <i class="bi bi-person-badge me-1"></i>Manage Accounts
+    </button>
+    <button class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#createPostModal">
+      <i class="bi bi-plus-lg me-1"></i>Create Post
+    </button>
+  </div>
+</div>
+
+<!-- Platform Cards -->
+<div class="row g-3 mb-4">
+  {% for p in platforms %}
+  <div class="col-lg-4 col-md-6">
+    <div class="data-card h-100">
+      <div class="p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:{{ p.bg }};">
+              <i class="bi bi-{{ p.icon }}" style="color:{{ p.color }};font-size:1.3rem;"></i>
+            </div>
+            <div>
+              <div class="fw-semibold text-white">{{ p.name }}</div>
+              <div style="font-size:.7rem;">
+                {% if p.has_connected %}<span class="badge badge-active rounded-pill">Connected</span>
+                {% else %}<span class="badge badge-inactive rounded-pill">Not Connected</span>{% endif %}
+                {% if p.accounts %}<span class="badge bg-secondary rounded-pill ms-1">{{ p.accounts|length }} account{{ p.accounts|length|pluralize:"s" }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="text-muted small mb-3" style="font-size:.78rem;">{{ p.desc }}</p>
+        <div class="rounded-2 p-2 mb-3" style="background:rgba(255,255,255,.04);font-size:.72rem;color:#9ca3af;">
+          <i class="bi bi-info-circle me-1"></i>{{ p.help }}
+        </div>
+        <button class="btn btn-sm w-100" style="background:{{ p.bg }};color:{{ p.color }};border:1px solid {{ p.color }}33;"
+          onclick="openAddAccount('{{ p.key }}','{{ p.name }}')">
+          <i class="bi bi-plus-circle me-1"></i>Add Account
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Quick Post Composer -->
+  <div class="data-card-header">
+    <div class="data-card-title"><i class="bi bi-pencil-fill text-warning me-2"></i>Create Post</div>
+  </div>
+  <div class="p-4">
+    <form method="POST" enctype="multipart/form-data" onsubmit="return validateFormSubmit()">
+      {% csrf_token %}
+      <input type="hidden" name="create_post" value="1">
+      <input type="hidden" name="media_type" id="mediaTypeInput" value="text">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="mb-3">
+            <label class="form-label">Select Location / Venue</label>
+            <select class="form-select" name="location_id" id="locSelect" onchange="buildCaption()">
+              <option value="">Choose a location...</option>
+              {% for loc in locations %}
+              <option value="{{ loc.pk }}" data-name="{{ loc.name }}" data-city="{{ loc.city }}" data-addr="{{ loc.address }}">{{ loc.name }} – {{ loc.city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex align-items-center justify-content-between">
+              <span>Caption / Message</span>
+              <span id="capLen" class="text-muted" style="font-size:.75rem;">0 chars</span>
+            </label>
+            <textarea class="form-control" name="caption" id="captionTA" rows="5" required
+              placeholder="Write your event caption here..." oninput="document.getElementById('capLen').textContent=this.value.length+' chars'"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Link URL (optional)</label>
+            <input type="url" class="form-control" name="link_url" id="linkUrlInput" placeholder="https://youtube.com/watch?v=..." />
+            <div class="form-text text-muted">Add a link to include with the post (e.g., event page or YouTube video).</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Platforms to Post To</label>
+            <div class="d-flex flex-wrap gap-3">
+              {% for p in platforms %}
+              <div class="form-check">
+                <input class="form-check-input platform-checkbox" type="checkbox" name="platforms" value="{{ p.key }}" id="plat_{{ p.key }}" 
+                  data-has-accounts="{% if p.has_connected %}true{% else %}false{% endif %}"
+                  onchange="validateForm()">
+                <label class="form-check-label text-white small" for="plat_{{ p.key }}">
+                  <i class="bi bi-{{ p.icon }}" style="color:{{ p.color }};"></i> {{ p.name }}
+                  {% if p.has_connected %}<span class="badge bg-success ms-1" style="font-size:.65rem;">{{ p.accounts|length }} account{{ p.accounts|length|pluralize:"s" }}</span>
+                  {% else %}<span class="text-muted">(add accounts)</span>{% endif %}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Media Type</label>
+            <div class="d-flex flex-wrap gap-2">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="media_option" id="media_text" value="text" checked onchange="selectMediaType('text')">
+                <label class="form-check-label text-white small" for="media_text">
+                  <i class="bi bi-card-text" style="color:#818cf8;"></i> Text
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="media_option" id="media_image" value="image" onchange="selectMediaType('image')">
+                <label class="form-check-label text-white small" for="media_image">
+                  <i class="bi bi-image" style="color:#22c55e;"></i> Image
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="media_option" id="media_video" value="video" onchange="selectMediaType('video')">
+                <label class="form-check-label text-white small" for="media_video">
+                  <i class="bi bi-video" style="color:#ef4444;"></i> Video
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3" id="fileUploadSection" style="display:none;">
+            <label class="form-label">Upload Media File</label>
+            <input type="file" class="form-control" name="media_file" id="mediaFile" accept="image/*,video/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(this)">
+            <div id="filePreview" class="mt-2"></div>
+            <div class="form-text text-warning" id="instagramWarning" style="display:none;">
+              <i class="bi bi-exclamation-triangle"></i> Instagram requires an image. Please upload a file.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Schedule (optional)</label>
+            <input type="datetime-local" class="form-control" name="schedule_at" id="scheduleField">
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-warning flex-fill" onclick="buildCaption()">
+              <i class="bi bi-magic me-1"></i>Auto-Fill Caption
+            </button>
+            <button type="submit" class="btn btn-gold flex-fill" id="postNowBtn">
+              <i class="bi bi-send-fill me-1"></i>Post Now
+            </button>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <label class="form-label">Preview</label>
+          <div class="rounded-3 p-3" style="background:rgba(255,255,255,.04);border:1px solid var(--fe-border);min-height:180px;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="rounded-circle" style="width:32px;height:32px;background:linear-gradient(135deg,#f5a623,#6c3cf5);"></div>
+              <div>
+                <div class="fw-semibold text-white" style="font-size:.85rem;">Event Directory and Logistic</div>
+                <div class="text-muted" style="font-size:.7rem;">Just now</div>
+              </div>
+            </div>
+            <div id="previewCaption" class="text-muted" style="font-size:.85rem;white-space:pre-wrap;">Select a location to build your caption...</div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Posts Table -->
+<div class="data-card">
+  <div class="data-card-header">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <div class="data-card-title"><i class="bi bi-clock-history text-info me-2"></i>Posts ({{ posts|length }})</div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm {% if status_filter == 'all' %}btn-gold{% else %}btn-outline-secondary{% endif %}" onclick="filterPosts('all')">All</button>
+        <button class="btn btn-sm {% if status_filter == 'scheduled' %}btn-gold{% else %}btn-outline-secondary{% endif %}" onclick="filterPosts('scheduled')"><i class="bi bi-calendar-event me-1"></i>Scheduled</button>
+        <button class="btn btn-sm {% if status_filter == 'posted' %}btn-gold{% else %}btn-outline-secondary{% endif %}" onclick="filterPosts('posted')"><i class="bi bi-check-circle me-1"></i>Posted</button>
+        <button class="btn btn-sm {% if status_filter == 'failed' %}btn-gold{% else %}btn-outline-secondary{% endif %}" onclick="filterPosts('failed')"><i class="bi bi-exclamation-triangle me-1"></i>Failed</button>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0">
+      <thead><tr><th>Platform</th><th>Media</th><th>Caption</th><th>Status</th><th>Schedule</th><th></th></tr></thead>
+      <tbody>
+        {% for post in posts %}
+        <tr class="post-row" data-status="{{ post.status }}">
+          <td>
+            <span class="badge rounded-pill" style="background:rgba(129,140,248,.15);color:#818cf8;">{{ post.platform|title }}</span>
+          </td>
+          <td>
+            {% if post.media_type == 'image' %}
+              <i class="bi bi-image" style="color:#22c55e;" title="Photo"></i>
+            {% elif post.media_type == 'video' %}
+              <i class="bi bi-video" style="color:#ef4444;" title="Video"></i>
+            {% elif post.media_type == 'document' %}
+              <i class="bi bi-file-earmark-text" style="color:#f59e0b;" title="Document"></i>
+            {% else %}
+              <i class="bi bi-card-text" style="color:#818cf8;" title="Text"></i>
+            {% endif %}
+          </td>
+          <td class="text-white small">{{ post.caption|truncatechars:50 }}</td>
+          <td>
+            {% if post.status == 'posted' %}
+              <span class="badge badge-active rounded-pill"><i class="bi bi-check-circle me-1"></i>Posted</span>
+              {% if post.post_url %}<a href="{{ post.post_url }}" target="_blank" class="ms-1"><i class="bi bi-box-arrow-up-right small"></i></a>{% endif %}
+            {% elif post.status == 'scheduled' %}
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge badge-upcoming rounded-pill"><i class="bi bi-clock me-1"></i>Scheduled</span>
+                <button class="btn btn-xs btn-outline-warning py-0 px-2" onclick="postNow({{ post.pk }})" title="Post Now"><i class="bi bi-play-fill"></i></button>
+              </div>
+            {% elif post.status == 'failed' %}
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge badge-inactive rounded-pill"><i class="bi bi-exclamation-triangle me-1"></i>Failed</span>
+                <button class="btn btn-xs btn-outline-danger py-0 px-2" onclick="showErrorDetails('{{ post.pk }}', '{{ post.platform|title }}', `{{ post.error_message|escapejs }}`)" title="View error details"><i class="bi bi-info-circle"></i></button>
+              </div>
+            {% else %}
+              <span class="badge rounded-pill" style="background:rgba(129,140,248,.15);color:#818cf8;">{{ post.status|title }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">
+            {% if post.scheduled_at %}
+              <div class="d-flex align-items-center gap-1">
+                <i class="bi bi-calendar3 text-warning"></i>
+                {{ post.scheduled_at|date:"M d, Y g:i A" }}
+              </div>
+              <div class="small" style="color:#6b7280;">
+                {% if post.scheduled_at > now %}
+                  in {{ post.scheduled_at|timeuntil }}
+                {% else %}
+                  <span class="text-warning">Ready to post</span>
+                {% endif %}
+              </div>
+            {% else %}
+              {{ post.created_at|date:"M d, Y g:i A" }}
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'social_post_edit' post.pk %}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:.7rem;" title="Edit"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{% url 'social_post_delete' post.pk %}" onsubmit="return confirm('Delete this post?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.7rem;"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-5">
+          <div style="font-size:2.5rem;">📱</div>
+          <div class="mt-2">No posts yet. Connect a platform and create your first post above.</div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Accounts Manager Modal -->
+<div class="modal fade" id="accountsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Social Accounts Manager</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-4">Manage your connected social media accounts. You can add multiple accounts per platform.</p>
+        
+        {% for p in platforms %}
+        <div class="mb-4">
+          <h6 class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+            <span><i class="bi bi-{{ p.icon }}" style="color:{{ p.color }};"></i> {{ p.name }}</span>
+            <button class="btn btn-sm btn-outline-primary" onclick="openAddAccount('{{ p.key }}', '{{ p.name }}')">
+              <i class="bi bi-plus-circle me-1"></i>Add Account
+            </button>
+          </h6>
+          
+          {% if p.accounts %}
+          <div class="list-group">
+            {% for account in p.accounts %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold text-white">
+                  {% if account.account_name %}{{ account.account_name }}{% else %}{{ account.get_platform_display }}{% endif %}
+                  {% if account.is_primary %}<span class="badge bg-primary ms-2">Primary</span>{% endif %}
+                </div>
+                <div class="small">
+                  {% if account.is_connected %}
+                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>Connected</span>
+                  {% else %}
+                    <span class="text-muted"><i class="bi bi-x-circle me-1"></i>Not connected</span>
+                  {% endif %}
+                  {% if account.extra_field %}<span class="text-muted ms-2">ID: {{ account.extra_field|truncatechars:20 }}</span>{% endif %}
+                  {% if account.platform == 'linkedin' and not account.extra_field %}
+                    <br><span class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>Profile ID not set - enter manually in Edit</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-warning" onclick="editAccount({{ account.pk }})">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteAccount({{ account.pk }}, '{% if account.account_name %}{{ account.account_name|escape }}{% else %}{{ account.get_platform_display|escape }}{% endif %}')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 rounded" style="background:rgba(255,255,255,0.02);border:2px dashed var(--fe-border);">
+            <i class="bi bi-person-plus fs-4 text-muted"></i>
+            <p class="mb-0 mt-2 small text-muted">No accounts added yet</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Account Modal -->
+<div class="modal fade" id="accountModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="accountModalTitle"><i class="bi bi-plus-circle me-2"></i>Add Account</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="accountForm">
+        {% csrf_token %}
+        <input type="hidden" name="save_config" value="1">
+        <input type="hidden" name="account_id" id="accountId" value="">
+        <div class="modal-body">
+          <input type="hidden" name="platform" id="accountPlatform">
+          <div class="mb-3">
+            <label class="form-label">Account Name <span class="text-muted">(optional)</span></label>
+            <input type="text" name="account_name" class="form-control" id="accountName" placeholder="e.g., Main Page, Events Account">
+            <div class="form-text text-muted small">A friendly name to identify this account</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Access Token / Bearer Token</label>
+            <input type="text" name="access_token" class="form-control" id="accountToken" placeholder="Paste your access token..." required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">App ID / Client ID <span class="text-muted">(optional)</span></label>
+            <input type="text" name="app_id" class="form-control" id="accountAppId" placeholder="App ID">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">App Secret / Client Secret <span class="text-muted">(optional)</span></label>
+            <input type="password" name="app_secret" class="form-control" id="accountAppSecret" placeholder="App Secret">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" id="accountExtraLabel">Page ID / Account ID</label>
+            <input type="text" name="extra_field" class="form-control" id="accountExtra" placeholder="Page ID, Business Account ID, URN, etc.">
+            <div class="form-text text-muted small" id="linkedinExtraHelp" style="display:none">
+              <strong>For LinkedIn personal posts:</strong> You need your <strong>numeric member ID</strong>.<br>
+              <span class="text-danger">Important:</span> The URL slug (e.g., <code>johndoe123</code> in <code>linkedin.com/in/johndoe123</code>) will NOT work - it must be a NUMBER.<br><br>
+              <strong>How to find your numeric ID:</strong><br>
+              1. Go to <a href="https://www.linkedin.com/developers/apps" target="_blank">LinkedIn Developer Portal</a><br>
+              2. Select your app → "Auth" tab → Look for "Member ID" or "Me" API call response<br>
+              3. Or use browser dev tools: Open your profile → F12 → Network tab → call <code>/me</code> API → find <code>id</code> field<br><br>
+              <strong>Example:</strong> If your Member ID is <code>12345678</code>, enter <code>12345678</code> or <code>urn:li:person:12345678</code>
+            </div>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_connected" id="accountConnected" value="on" checked>
+            <label class="form-check-label" for="accountConnected">Mark as Connected</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold"><i class="bi bi-floppy-fill me-1"></i>Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#dc2626;">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Delete Account?</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="deleteAccountName"></strong>?</p>
+        <p class="text-muted small">This action cannot be undone.</p>
+      </div>
+      <form method="POST" id="deleteAccountForm">
+        {% csrf_token %}
+        <input type="hidden" name="delete_config" value="1">
+        <input type="hidden" name="config_id" id="deleteConfigId">
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Config Modal -->
+<div class="modal fade" id="configModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="configModalTitle">Configure Platform</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="save_config" value="1">
+        <input type="hidden" name="platform" id="configPlatform">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Access Token / Bearer Token</label>
+            <input type="text" name="access_token" class="form-control" placeholder="Paste your access token..." id="cfgToken">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">App ID / Client ID</label>
+            <input type="text" name="app_id" class="form-control" placeholder="App ID" id="cfgAppId">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">App Secret / Client Secret</label>
+            <input type="password" name="app_secret" class="form-control" placeholder="App Secret" id="cfgSecret">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" id="cfgExtraLabel">Page ID / Account ID</label>
+            <input type="text" name="extra_field" class="form-control" placeholder="Optional extra field" id="cfgExtra">
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_connected" id="cfgActive" value="on">
+            <label class="form-check-label" for="cfgActive">Mark as Connected</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold"><i class="bi bi-floppy-fill me-1"></i>Save Configuration</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Error Details Modal -->
+<div class="modal fade" id="errorDetailsModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#dc2626;">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Failed Post Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label text-muted small">Platform</label>
+          <div class="fw-semibold text-white" id="errorPlatform"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-muted small">Post ID</label>
+          <div class="fw-semibold text-white" id="errorPostId"></div>
+        </div>
+        <div>
+          <label class="form-label text-muted small">Error Message</label>
+          <div class="rounded p-3" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:#fca5a5;font-size:.85rem;white-space:pre-wrap;word-break:break-word;" id="errorMessage"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.upload-card {
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all .2s;
+}
+.upload-card:hover {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.1);
+}
+.upload-card.active {
+  border-color: #f5a623;
+  background: rgba(245,166,35,.1);
+}
+.upload-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 1.8rem;
+}
+</style>
+<script>
+const captionTA = document.getElementById('captionTA');
+const preview   = document.getElementById('previewCaption');
+captionTA.addEventListener('input', () => { preview.textContent = captionTA.value || 'Preview will appear here...'; });
+
+let currentMediaType = 'text';
+
+function handleFileSelect(input) {
+  const preview = document.getElementById('filePreview');
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const type = currentMediaType;
+    let html = '<div class="d-flex align-items-center gap-3 p-2 rounded" style="background:rgba(255,255,255,.05);">';
+    
+    if (type === 'image') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.innerHTML = html + '<img src="' + e.target.result + '" style="width:80px;height:80px;object-fit:cover;border-radius:8px;"><div><div class="text-white small fw-semibold">' + file.name + '</div><div class="text-muted small">' + (file.size/1024).toFixed(1) + ' KB</div></div></div>';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const icon = type === 'video' ? 'bi-video' : 'bi-file-earmark-text';
+      const color = type === 'video' ? '#ef4444' : '#f59e0b';
+      preview.innerHTML = html + '<div style="width:60px;height:60px;background:' + color + '20;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi ' + icon + '" style="font-size:1.5rem;color:' + color + ';"></i></div><div><div class="text-white small fw-semibold">' + file.name + '</div><div class="text-muted small">' + (file.size/1024).toFixed(1) + ' KB</div></div></div>';
+    }
+    validateForm();
+  }
+}
+
+function buildCaption() {
+  const sel  = document.getElementById('locSelect');
+  const opt  = sel.options[sel.selectedIndex];
+  if (!opt.value) return;
+  const name = opt.getAttribute('data-name');
+  const city = opt.getAttribute('data-city');
+  const addr = opt.getAttribute('data-addr');
+  const templates = [
+    `🌴 Join us at ${name} in ${city}!\n\n📍 ${addr}\n\n✨ An unforgettable night of fun and connection awaits.\n\nTag a friend and let's go! 🎉\n\n#FloridaEvents #${city.replace(/\s/g,'')} #Events`,
+    `📣 TONIGHT at ${name}!\n\nDon't miss out — ${city}'s hottest event is waiting for you.\n\n📍 ${addr}\n\nSecure your spot now: [link in bio] 🔥\n\n#FloridaMatchmaking #${city.replace(/\s/g,'')}`,
+    `🎊 Big night ahead at ${name}!\n\n${city} — we're bringing the best vibes, best people, and unforgettable moments.\n\n📍 ${addr}\n\n💫 See you there!\n\n#FloridaEvents #${city.replace(/\s/g,'')}`,
+  ];
+  const caption = templates[Math.floor(Math.random()*templates.length)];
+  captionTA.value = caption;
+  preview.textContent = caption;
+  document.getElementById('capLen').textContent = caption.length + ' chars';
+}
+
+function openConfig(key, name, connected) {
+  document.getElementById('configModalTitle').textContent = 'Configure ' + name;
+  document.getElementById('configPlatform').value = key;
+  document.getElementById('cfgActive').checked = connected;
+  const extras = {facebook:'Page ID', instagram:'Instagram Business Account ID', twitter:'Access Token Secret', linkedin:'LinkedIn Profile ID / Org URN', threads:'Threads User ID', pinterest:'Board ID'};
+  document.getElementById('cfgExtraLabel').textContent = extras[key] || 'Extra Field';
+  new bootstrap.Modal(document.getElementById('configModal')).show();
+}
+
+// Account management functions
+function openAddAccount(key, name) {
+  // Close accounts modal if open
+  bootstrap.Modal.getInstance(document.getElementById('accountsModal'))?.hide();
+  
+  document.getElementById('accountModalTitle').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Add ' + name + ' Account';
+  document.getElementById('accountId').value = '';
+  document.getElementById('accountPlatform').value = key;
+  document.getElementById('accountName').value = '';
+  document.getElementById('accountToken').value = '';
+  document.getElementById('accountAppId').value = '';
+  document.getElementById('accountAppSecret').value = '';
+  document.getElementById('accountExtra').value = '';
+  document.getElementById('accountConnected').checked = true;
+  
+  const extras = {facebook:'Page ID', instagram:'Instagram Business Account ID', twitter:'Access Token Secret', linkedin:'LinkedIn Profile ID / Org URN', threads:'Threads User ID', pinterest:'Board ID'};
+  document.getElementById('accountExtraLabel').textContent = extras[key] || 'Account ID';
+  
+  const extraPlaceholders = {facebook:'123456789', instagram:'123456789', twitter:'', linkedin:'urn:li:person:abc123 or just 123456789', threads:'', pinterest:'123456789'};
+  document.getElementById('accountExtra').placeholder = extraPlaceholders[key] || 'Account ID';
+  
+  // Show LinkedIn help for linkedin platform
+  const linkedinHelp = document.getElementById('linkedinExtraHelp');
+  if (linkedinHelp) {
+    linkedinHelp.style.display = (key === 'linkedin') ? 'block' : 'none';
+  }
+  
+  new bootstrap.Modal(document.getElementById('accountModal')).show();
+}
+
+function editAccount(accountId) {
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  
+  fetch('/dashboard/social/edit-account/', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'X-CSRFToken': csrfToken,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'edit_config=1&config_id=' + accountId
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.id) {
+      document.getElementById('accountModalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Edit Account';
+      document.getElementById('accountId').value = data.id;
+      document.getElementById('accountPlatform').value = data.platform;
+      document.getElementById('accountName').value = data.account_name || '';
+      document.getElementById('accountToken').value = data.access_token || '';
+      document.getElementById('accountAppId').value = data.app_id || '';
+      document.getElementById('accountAppSecret').value = data.app_secret || '';
+      document.getElementById('accountExtra').value = data.extra_field || '';
+      document.getElementById('accountConnected').checked = data.is_connected;
+      
+      const extras = {facebook:'Page ID', instagram:'Instagram Business Account ID', twitter:'Access Token Secret', linkedin:'LinkedIn Profile ID / Org URN', threads:'Threads User ID', pinterest:'Board ID'};
+      document.getElementById('accountExtraLabel').textContent = extras[data.platform] || 'Account ID';
+      
+      const extraPlaceholders = {facebook:'123456789', instagram:'123456789', twitter:'', linkedin:'urn:li:person:abc123 or just 123456789', threads:'', pinterest:'123456789'};
+      document.getElementById('accountExtra').placeholder = extraPlaceholders[data.platform] || 'Account ID';
+      
+      // Show LinkedIn help for linkedin platform
+      const linkedinHelp = document.getElementById('linkedinExtraHelp');
+      if (linkedinHelp) {
+        linkedinHelp.style.display = (data.platform === 'linkedin') ? 'block' : 'none';
+      }
+      
+      new bootstrap.Modal(document.getElementById('accountModal')).show();
+    } else {
+      alert('Error loading account data');
+    }
+  })
+  .catch(err => {
+    console.error('Error:', err);
+    alert('Failed to load account data');
+  });
+}
+
+function deleteAccount(accountId, accountName) {
+  document.getElementById('deleteAccountName').textContent = accountName;
+  document.getElementById('deleteConfigId').value = accountId;
+  new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+}
+
+document.querySelectorAll('.upload-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const radio = card.querySelector('input[type="radio"]');
+    selectMediaType(radio.value);
+  });
+});
+
+function filterPosts(status) {
+  const rows = document.querySelectorAll('.post-row');
+  rows.forEach(row => {
+    if (status === 'all' || row.dataset.status === status) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+function showErrorDetails(postId, platform, errorMsg) {
+  document.getElementById('errorPostId').textContent = postId;
+  document.getElementById('errorPlatform').textContent = platform;
+  document.getElementById('errorMessage').textContent = errorMsg || 'No error details available.';
+  new bootstrap.Modal(document.getElementById('errorDetailsModal')).show();
+}
+
+function postNow(postId) {
+  if (!confirm('Post this now instead of waiting for scheduled time?')) return;
+  
+  const btn = event.target.closest('button');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+  
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  
+  fetch(`/dashboard/social/post-now/${postId}/`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'X-CSRFToken': csrfToken,
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-play-fill"></i>';
+    }
+  })
+  .catch(err => {
+    console.error('Post failed:', err);
+    alert('Failed: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-play-fill"></i>';
+  });
+}
+
+function validateForm() {
+  const mediaType = document.querySelector('input[name="media_option"]:checked')?.value || 'text';
+  const mediaFileCount = document.getElementById('mediaFile').files.length;
+  const warningBox = document.getElementById('instagramWarning');
+  const submitBtn = document.getElementById('postNowBtn');
+  const textRadio = document.getElementById('media_text');
+
+  const errors = [];
+
+  // Instagram-specific rules
+  const instagramChk = document.getElementById('plat_instagram');
+  if (instagramChk && instagramChk.checked) {
+    if (mediaType === 'text') {
+      errors.push('Instagram: Only photo or video can be accepted as media type');
+      if (textRadio) textRadio.parentElement.style.opacity = '0.5';
+    } else if (mediaType === 'image' && !mediaFileCount) {
+      errors.push('Instagram: Please upload an image file');
+    }
+    if (instagramChk.dataset.hasAccounts !== 'true') {
+      errors.push('Instagram: No connected accounts. Add one in Manage Accounts.');
+    }
+  } else if (textRadio) {
+    textRadio.parentElement.style.opacity = '1';
+  }
+
+  // Other platforms: ensure connected accounts exist
+  const platformsToCheck = [
+    {id: 'plat_facebook', name: 'Facebook'},
+    {id: 'plat_twitter',  name: 'X (Twitter)'},
+    {id: 'plat_linkedin', name: 'LinkedIn'},
+    {id: 'plat_threads',  name: 'Threads'},
+    {id: 'plat_pinterest', name: 'Pinterest'},
+  ];
+  platformsToCheck.forEach(p => {
+    const el = document.getElementById(p.id);
+    if (el && el.checked && el.dataset.hasAccounts !== 'true') {
+      errors.push(`${p.name}: No connected accounts. Add one in Manage Accounts.`);
+    }
+  });
+
+  if (errors.length) {
+    warningBox.innerHTML = '<i class=\"bi bi-exclamation-triangle\"></i> ' + errors.join('<br><i class=\"bi bi-exclamation-triangle\"></i> ');
+    warningBox.style.display = 'block';
+    warningBox.style.color = '#ef4444';
+    submitBtn.disabled = true;
+    submitBtn.title = errors[0];
+  } else {
+    warningBox.style.display = 'none';
+    submitBtn.disabled = false;
+    submitBtn.title = '';
+  }
+}
+
+function selectMediaType(type) {
+  const radio = document.getElementById('media_' + type);
+  if (radio) radio.checked = true;
+  document.getElementById('mediaTypeInput').value = type;
+  currentMediaType = type;
+  
+  const fileSection = document.getElementById('fileUploadSection');
+  if (type === 'image' || type === 'video' || type === 'document') {
+    fileSection.style.display = 'block';
+    document.getElementById('mediaFile').accept = type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : '.pdf,.doc,.docx,.txt';
+  } else {
+    fileSection.style.display = 'none';
+  }
+  validateForm();
+}
+
+function validateFormSubmit() {
+  const caption = document.getElementById('captionTA').value.trim();
+  const mediaType = document.querySelector('input[name="media_option"]:checked').value;
+  const mediaFile = document.getElementById('mediaFile').files.length;
+
+  if (!caption) {
+    alert('Please enter a caption.');
+    return false;
+  }
+
+  const platforms = document.querySelectorAll('.platform-checkbox:checked');
+  if (!platforms.length) {
+    alert('Please select at least one platform to post to.');
+    return false;
+  }
+
+  const instagramChk = document.getElementById('plat_instagram');
+  if (instagramChk && instagramChk.checked) {
+    if (mediaType === 'text') {
+      alert('Instagram requires an image or video. Please select Image or Video, or deselect Instagram.');
+      return false;
+    }
+    if (mediaType === 'image' && !mediaFile) {
+      alert('Instagram requires an image file. Please upload an image or deselect Instagram.');
+      return false;
+    }
+    if (instagramChk.dataset.hasAccounts !== 'true') {
+      alert('Connect an Instagram account in Manage Accounts before posting.');
+      return false;
+    }
+  }
+
+  const platformChecks = [
+    {id:'plat_facebook', name:'Facebook'},
+    {id:'plat_twitter',  name:'X (Twitter)'},
+    {id:'plat_linkedin', name:'LinkedIn'},
+    {id:'plat_threads',  name:'Threads'},
+    {id:'plat_pinterest', name:'Pinterest'}
+  ];
+  for (const p of platformChecks) {
+    const el = document.getElementById(p.id);
+    if (el && el.checked && el.dataset.hasAccounts !== 'true') {
+      alert(`Please add a connected ${p.name} account in "Manage Accounts" or deselect ${p.name}.`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// Initialize validation on page load
+document.addEventListener('DOMContentLoaded', validateForm);
+</script>
+{% endblock %}

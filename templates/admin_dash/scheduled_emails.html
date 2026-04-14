@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-calendar-check me-2"></i>Scheduled Emails</h2>
+        <a href="{% url 'scheduled_email_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>New Scheduled Email
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if emails %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Recipient</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Scheduled For</th>
+                            <th>Sent At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for email in emails %}
+                        <tr>
+                            <td>
+                                <a href="mailto:{{ email.recipient_email }}">{{ email.recipient_email }}</a>
+                            </td>
+                            <td>{{ email.subject|truncatechars:50 }}</td>
+                            <td>
+                                {% if email.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif email.status == 'sent' %}
+                                    <span class="badge bg-success">Sent</span>
+                                {% elif email.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% elif email.status == 'sending' %}
+                                    <span class="badge bg-info">Sending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if email.scheduled_at %}
+                                    {{ email.scheduled_at|date:"M d, Y H:i" }}
+                                {% else %}
+                                    <span class="text-muted">Immediate</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if email.sent_at %}
+                                    {{ email.sent_at|date:"M d, Y H:i" }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if email.status == 'pending' %}
+                                    <a href="{% url 'scheduled_email_send_now' email.pk %}" 
+                                       class="btn btn-sm btn-success"
+                                       onclick="return confirm('Send this email now?');">
+                                        <i class="bi bi-send"></i> Send Now
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'scheduled_email_delete' email.pk %}" 
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Delete this scheduled email?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if emails.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if emails.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ emails.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">Page {{ emails.number }} of {{ emails.paginator.num_pages }}</span>
+                    </li>
+                    {% if emails.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ emails.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No scheduled emails yet.</p>
+                <a href="{% url 'scheduled_email_create' %}" class="btn btn-primary">
+                    Create Your First Scheduled Email
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

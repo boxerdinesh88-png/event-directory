@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Promotion Hub{% endblock %}
+{% block page_title %}Event Promotion Hub{% endblock %}
+{% block content %}
+<!-- Hero Banner -->
+<div class="data-card mb-4" style="background:linear-gradient(135deg,rgba(245,166,35,.1),rgba(108,60,245,.1));border-color:rgba(245,166,35,.3);">
+  <div class="p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <h4 class="text-white fw-bold mb-1"><i class="bi bi-rocket-takeoff-fill text-warning me-2"></i>One-Click Event Promotion</h4>
+      <p class="text-muted mb-0">Distribute events across social media, email & SMS — all from one place.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-4">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(239,68,68,.15);"><i class="bi bi-envelope-fill" style="color:#f87171;"></i></div>
+      <div class="stat-value" style="color:#f87171;">{{ stats.email_blasts }}</div>
+      <div class="stat-label">Email Blasts</div>
+      <div class="text-success small mt-1">{{ stats.sent_blasts }} sent</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-4">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(99,102,241,.15);"><i class="bi bi-share-fill" style="color:#818cf8;"></i></div>
+      <div class="stat-value" style="color:#818cf8;">{{ stats.social_posts }}</div>
+      <div class="stat-label">Social Posts</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-4">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(245,166,35,.15);"><i class="bi bi-chat-dots-fill" style="color:#fbbf24;"></i></div>
+      <div class="stat-value" style="color:#fbbf24;">{{ stats.sms_sent }}</div>
+      <div class="stat-label">SMS Delivered</div>
+    </div>
+  </div>
+</div>
+
+<!-- Channel Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-share-fill text-primary me-2"></i>Social Media</div>
+        <a href="{% url 'social_media' %}" class="btn btn-sm btn-outline-secondary">Manage →</a>
+      </div>
+      <div class="p-3">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge rounded-pill" style="background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.2);">Facebook</span>
+          <span class="badge rounded-pill" style="background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.2);">Instagram</span>
+          <span class="badge rounded-pill" style="background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.2);">X (Twitter)</span>
+          <span class="badge rounded-pill" style="background:rgba(129,140,248,.12);color:#818cf8;border:1px solid rgba(129,140,248,.2);">LinkedIn</span>
+        </div>
+        <p class="text-muted small mb-3">Auto-post event announcements to connected platforms with one click.</p>
+        <a href="{% url 'social_media' %}" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-plug-fill me-1"></i>Connect Platforms</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-play-circle-fill text-danger me-2"></i>Webinar System</div>
+        <a href="{% url 'webinar_dashboard' %}" class="btn btn-sm btn-outline-secondary">Manage →</a>
+      </div>
+      <div class="p-3">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge rounded-pill" style="background:rgba(102,126,234,.12);color:#667eea;border:1px solid rgba(102,126,234,.2);">Facebook Groups</span>
+          <span class="badge rounded-pill" style="background:rgba(102,126,234,.12);color:#667eea;border:1px solid rgba(102,126,234,.2);">Bulk Posting</span>
+          <span class="badge rounded-pill" style="background:rgba(102,126,234,.12);color:#667eea;border:1px solid rgba(102,126,234,.2);">Scheduling</span>
+        </div>
+        <p class="text-muted small mb-3">Promote webinars across hundreds of Facebook groups automatically.</p>
+        <a href="{% url 'webinar_dashboard' %}" class="btn btn-sm btn-danger w-100"><i class="bi bi-rocket-takeoff me-1"></i>Open Webinar System</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-envelope-fill text-warning me-2"></i>Email Outreach</div>
+        <a href="{% url 'email_templates' %}" class="btn btn-sm btn-outline-secondary">Templates →</a>
+      </div>
+      <div class="p-3">
+        <div class="row g-2 mb-3 text-center">
+          <div class="col-4"><div class="rounded-2 p-2" style="background:rgba(255,255,255,.04);"><div class="fw-bold text-warning">{{ stats.email_blasts }}</div><div class="text-muted" style="font-size:.7rem;">Blasts</div></div></div>
+          <div class="col-4"><div class="rounded-2 p-2" style="background:rgba(255,255,255,.04);"><div class="fw-bold text-success">{{ stats.sent_blasts }}</div><div class="text-muted" style="font-size:.7rem;">Sent</div></div></div>
+          <div class="col-4"><div class="rounded-2 p-2" style="background:rgba(255,255,255,.04);"><div class="fw-bold text-info">{{ stats.template_count }}</div><div class="text-muted" style="font-size:.7rem;">Templates</div></div></div>
+        </div>
+        <a href="{% url 'email_compose' %}" class="btn btn-sm btn-outline-warning w-100"><i class="bi bi-envelope-plus me-1"></i>Compose Email Blast</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-chat-dots-fill text-danger me-2"></i>SMS Messaging</div>
+        <a href="{% url 'sms_blast' %}" class="btn btn-sm btn-outline-secondary">Manage →</a>
+      </div>
+      <div class="p-3">
+        <div class="rounded-2 p-3 mb-3" style="background:rgba(255,255,255,.04);font-family:monospace;font-size:.8rem;color:#9ca3af;">
+          "Reminder: <span style="color:#fbbf24;">{Event_Name}</span> is tonight at <span style="color:#818cf8;">{Venue_Name}</span>. Details: <span style="color:#34d399;">{Event_Link}</span>"
+        </div>
+        <a href="{% url 'sms_blast' %}" class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-send me-1"></i>Send SMS Blast</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

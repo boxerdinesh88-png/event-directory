@@ -1,0 +1,41 @@
+{% extends "allauth/layouts/entrance.html" %}
+{% load i18n %}
+
+{% block head_title %}
+    {% trans "Sign In" %}
+{% endblock head_title %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h2 class="auth-title">
+    {% if process == "connect" %}
+      {% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}
+    {% else %}
+      {% blocktrans with provider.name as provider %}Sign In Via {{ provider }}{% endblocktrans %}
+    {% endif %}
+  </h2>
+</div>
+
+<p class="text-center text-muted mb-4">
+  {% if process == "connect" %}
+    {% blocktrans with provider.name as provider %}You are about to connect a new third-party account from {{ provider }}.{% endblocktrans %}
+  {% else %}
+    {% blocktrans with provider.name as provider %}You are about to sign in using a third-party account from {{ provider }}.{% endblocktrans %}
+  {% endif %}
+</p>
+
+<form method="post" action="{% url 'socialaccount_login' %}">
+  {% csrf_token %}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-gold">
+      <i class="bi bi-google me-2"></i>{% trans "Continue" %}
+    </button>
+    <a href="{{ login_url }}" class="btn btn-outline-secondary text-center">
+      <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Login" %}
+    </a>
+  </div>
+</form>
+{% endblock %}

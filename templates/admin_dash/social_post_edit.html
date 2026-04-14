@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Edit Post –  Event Directory and Logistic{% endblock %}
+{% block page_title %}Edit Social Post{% endblock %}
+
+{% block content %}
+<div class="data-card mb-4">
+  <div class="data-card-header">
+    <div class="data-card-title"><i class="bi bi-pencil-fill text-warning me-2"></i>Edit Post</div>
+  </div>
+  <div class="p-4">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="media_type" id="mediaTypeInput" value="{{ post.media_type }}">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="mb-3">
+            <label class="form-label" for="platform">Platform</label>
+            <input type="text" class="form-control" id="platform" value="{{ post.get_platform_display|default:post.platform|title }}" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="location_id">Location / Venue</label>
+            <select class="form-select" name="location_id" id="location_id">
+              <option value="">No location</option>
+              {% for loc in locations %}
+              <option value="{{ loc.pk }}" {% if post.location_id == loc.pk %}selected{% endif %}>{{ loc.name }} – {{ loc.city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="caption">Caption / Message</label>
+            <textarea class="form-control" name="caption" id="caption" rows="5" required>{{ post.caption }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="link_url">Link URL (optional)</label>
+            <input type="url" class="form-control" name="link_url" id="link_url" value="{{ post.link_url }}" placeholder="https://youtube.com/watch?v=...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="media_type">Media Type</label>
+            <select class="form-select" name="media_type" id="mediaTypeSelect">
+              <option value="text" {% if post.media_type == 'text' %}selected{% endif %}>Text</option>
+              <option value="image" {% if post.media_type == 'image' %}selected{% endif %}>Image</option>
+              <option value="video" {% if post.media_type == 'video' %}selected{% endif %}>Video</option>
+            </select>
+          </div>
+          <div class="mb-3" id="mediaUrlField">
+            <label class="form-label" for="media_url">Media URL</label>
+            <input type="url" class="form-control" name="media_url" id="mediaUrlInput" value="{{ post.media_url }}" placeholder="https://example.com/image.jpg">
+            <div class="form-text">For Instagram, use a publicly accessible URL (required for images)</div>
+          </div>
+          <div class="mb-3" id="mediaFileField">
+            <label class="form-label" for="media_file">Upload New Media (optional)</label>
+            <input type="file" class="form-control" name="media_file" id="mediaFile" accept="image/*,video/*">
+            <div class="form-text">Max 10MB. Uploading will replace the URL above.</div>
+          </div>
+          {% if post.media_url %}
+          <div class="mb-3">
+            <label class="form-label">Current Media Preview</label>
+            <img src="{{ post.media_url }}" alt="Current media preview" class="media-preview img-thumbnail" style="max-width:200px;max-height:200px;border-radius:8px;">
+          </div>
+          {% endif %}
+          <div class="d-flex gap-2">
+            <a href="{% url 'social_media' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-gold">
+              <i class="bi bi-check-lg me-1"></i>Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleMediaFields() {
+  const type = document.getElementById('mediaTypeSelect').value;
+  document.getElementById('mediaTypeInput').value = type;
+  if (type === 'image' || type === 'video') {
+    document.getElementById('mediaUrlField').style.display = 'block';
+    document.getElementById('mediaFileField').style.display = 'block';
+  } else {
+    document.getElementById('mediaUrlField').style.display = 'none';
+    document.getElementById('mediaFileField').style.display = 'none';
+  }
+}
+document.getElementById('mediaTypeSelect').addEventListener('change', toggleMediaFields);
+document.getElementById('mediaFileField').style.display = 'none';
+const mediaImg = document.querySelector('.media-preview');
+if (mediaImg) {
+  mediaImg.addEventListener('error', function() { this.style.display = 'none'; });
+}
+toggleMediaFields();
+</script>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %}</title>
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% if user.is_authenticated %}
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-title"><i class="bi bi-calendar-event brand-icon"></i> Event Directory </div>
+      <div class="brand-sub">& Logistic</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">Main</div>
+      <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+      </a>
+      <a href="{% url 'help' %}" class="nav-link {% if request.resolver_match.url_name == 'help' %}active{% endif %}">
+        <i class="bi bi-question-circle-fill"></i> Help
+      </a>
+
+      <div class="nav-section-title">Management</div>
+      <a href="{% url 'location_list' %}" class="nav-link {% if 'location' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-geo-alt-fill"></i> Locations
+      </a>
+      <a href="{% url 'contact_list' %}" class="nav-link {% if 'contact' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-people-fill"></i> Contacts
+      </a>
+
+      <div class="nav-section-title">Communication</div>
+      <a href="{% url 'email_list' %}" class="nav-link {% if 'email' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-envelope-fill"></i> Email Blasts
+      </a>
+      <a href="{% url 'email_compose' %}" class="nav-link">
+        <i class="bi bi-plus-circle-fill"></i> Compose Blast
+      </a>
+     <a href="{% url 'email_templates' %}" class="nav-link {% if 'email_template' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-file-earmark-richtext-fill"></i> Email Templates
+      </a>
+
+      <div class="nav-section-title">Promotion</div>
+      <a href="{% url 'promotion_hub' %}" class="nav-link {% if request.resolver_match.url_name == 'promotion_hub' %}active{% endif %}">
+        <i class="bi bi-rocket-takeoff-fill"></i> Promotion Hub
+      </a>
+      <a href="{% url 'webinar_dashboard' %}" class="nav-link {% if 'webinar' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-play-circle-fill"></i> Webinar System
+      </a>
+      <a href="{% url 'social_media' %}" class="nav-link {% if request.resolver_match.url_name == 'social_media' %}active{% endif %}">
+        <i class="bi bi-share-fill"></i> Social Media
+      </a>
+      <a href="{% url 'sms_blast' %}" class="nav-link {% if 'sms' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-chat-dots-fill"></i> SMS Blast
+      </a>
+
+      <div class="nav-section-title">Data</div>
+      <a href="{% url 'reports' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+        <i class="bi bi-bar-chart-line-fill"></i> Reports
+      </a>
+      <a href="{% url 'import_data' %}" class="nav-link {% if 'import' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-upload"></i> Import Data
+      </a>
+
+      <div class="nav-section-title">Account</div>
+      <a href="{% url 'logout' %}" class="nav-link">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <!-- Topbar -->
+    <div class="topbar d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-outline-secondary d-md-none" onclick="document.getElementById('sidebar').classList.toggle('show')">
+          <i class="bi bi-list"></i>
+        </button>
+        <h6 class="mb-0 fw-semibold page-title">{% block page_title %}Dashboard{% endblock %}</h6>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'help' %}" class="btn btn-sm d-flex align-items-center gap-2" style="background: var(--fe-gold-light); color: var(--fe-gold); border: 1px solid rgba(245, 166, 35, 0.3); border-radius: 8px; padding: 0.4rem 0.75rem;">
+          <i class="bi bi-question-circle"></i>
+          <span class="d-none d-sm-inline" style="font-size: 0.8rem; font-weight: 600;">Help</span>
+        </a>
+        <button id="themeToggleBtn" class="theme-toggle-btn" type="button" onclick="toggleTheme()">
+          <i id="themeToggleIcon" class="bi bi-moon-stars"></i>
+          <span id="themeToggleLabel">Dark</span>
+        </button>
+        <div class="user-dropdown">
+          <div class="user-avatar" onclick="toggleUserDropdown()" id="userAvatar">
+            {% if user_profile_photo %}
+              <img src="{{ user_profile_photo }}" alt="Profile" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+            {% else %}
+              {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            {% endif %}
+          </div>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="user-info">
+              <div class="user-info-name">{{ user.get_full_name|default:user.username }}</div>
+              <div class="user-info-email">{{ user.email|default:user.username }}</div>
+            </div>
+            <a href="{% url 'user_profile' %}" class="user-dropdown-item">
+              <i class="bi bi-person"></i>
+              <span>My Profile</span>
+            </a>
+            <a href="{% url 'user_settings' %}" class="user-dropdown-item">
+              <i class="bi bi-gear"></i>
+              <span>Settings</span>
+            </a>
+            <div class="user-dropdown-divider"></div>
+            <a href="{% url 'logout' %}" class="user-dropdown-item" style="color: #ef4444;">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Sign Out</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="page-content">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Non-authenticated layout -->
+  {% block auth_content %}{% endblock %}
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function () {
+      // Check for saved theme in localStorage, default to light if none
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
+      updateThemeToggle(savedTheme);
+      initOffline404Fallback();
+    })();
+
+    function updateThemeToggle(theme) {
+      const icon = document.getElementById('themeToggleIcon');
+      const label = document.getElementById('themeToggleLabel');
+      if (!icon || !label) return;
+      if (theme === 'dark') {
+        icon.className = 'bi bi-sun';
+        label.textContent = 'Light';
+      } else {
+        icon.className = 'bi bi-moon-stars';
+        label.textContent = 'Dark';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-bs-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeToggle(next);
+    }
+
+    function initOffline404Fallback() {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        });
+      }
+    }
+
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById('userDropdownMenu');
+      dropdown.classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('userDropdownMenu');
+      const avatar = document.getElementById('userAvatar');
+      if (!dropdown || !avatar) return;
+      if (!avatar.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    // ── Professional Toast Notifications ──
+    (function() {
+      const container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.className = 'toast-container position-fixed top-0 end-0 p-3';
+      container.style.zIndex = '10000';
+      document.body.appendChild(container);
+    })();
+
+    function showToast(message, type) {
+      type = type || 'info';
+      const icons = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-exclamation-circle-fill',
+        warning: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill'
+      };
+      const colors = {
+        success: { bg: '#f0fdf4', border: '#22c55e', icon: '#16a34a', text: '#166534' },
+        error:   { bg: '#fef2f2', border: '#ef4444', icon: '#dc2626', text: '#991b1b' },
+        warning: { bg: '#fffbeb', border: '#f59e0b', icon: '#d97706', text: '#92400e' },
+        info:    { bg: '#eff6ff', border: '#3b82f6', icon: '#2563eb', text: '#1e40af' }
+      };
+      const c = colors[type] || colors.info;
+      const icon = icons[type] || icons.info;
+
+      const el = document.createElement('div');
+      el.className = 'toast align-items-center border-0';
+      el.setAttribute('role', 'alert');
+      el.style.cssText = 'background:' + c.bg + '; border-left: 4px solid ' + c.border + '; border-radius: 8px; min-width: 320px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);';
+      el.innerHTML =
+        '<div class="d-flex align-items-center p-3">' +
+          '<i class="bi ' + icon + ' me-3" style="font-size:1.2rem; color:' + c.icon + ';"></i>' +
+          '<span class="flex-grow-1" style="font-size:0.875rem; font-weight:500; color:' + c.text + '; line-height:1.4;">' + message + '</span>' +
+          '<button type="button" class="btn-close ms-2" data-bs-dismiss="toast" style="font-size:0.65rem;"></button>' +
+        '</div>';
+
+      document.getElementById('toastContainer').appendChild(el);
+      const toast = new bootstrap.Toast(el, { delay: 4000, autohide: true });
+      toast.show();
+      el.addEventListener('hidden.bs.toast', function() { el.remove(); });
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

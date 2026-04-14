@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} – Event Directory and Logistic{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'location_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="text-white mb-0">{{ title }}</h5>
+</div>
+<form method="POST" class="row g-4">
+  {% csrf_token %}
+  {% if form.errors %}
+  <div class="col-12">
+    <div class="alert alert-danger mb-0">
+      <div class="fw-semibold mb-2">Location could not be saved:</div>
+      <ul class="mb-0">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+  <div class="col-lg-8">
+    <!-- Basic Info -->
+    <div class="data-card mb-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-building me-2 text-primary"></i>Basic Information</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Location Name *</label>{{ form.name }}</div>
+          <div class="col-md-6"><label class="form-label">Type</label>{{ form.type }}</div>
+          <div class="col-md-6"><label class="form-label">Status</label>{{ form.status }}</div>
+          <div class="col-12"><label class="form-label">Description</label>{{ form.description }}</div>
+          <div class="col-12"><label class="form-label">Amenities</label>{{ form.amenities }}</div>
+          <div class="col-md-6"><label class="form-label">Capacity</label>{{ form.capacity }}</div>
+          <div class="col-md-6"><label class="form-label">Notes</label>{{ form.notes }}</div>
+        </div>
+      </div>
+    </div>
+    <!-- Address -->
+    <div class="data-card mb-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-geo-alt me-2 text-warning"></i>Address</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Street Address</label>{{ form.address }}</div>
+          <div class="col-md-4"><label class="form-label">City</label>{{ form.city }}</div>
+          <div class="col-md-4"><label class="form-label">State</label>{{ form.state }}</div>
+          <div class="col-md-4"><label class="form-label">ZIP Code</label>{{ form.zip_code }}</div>
+          <div class="col-md-6"><label class="form-label">County</label>{{ form.county }}</div>
+          <div class="col-md-3"><label class="form-label">Latitude</label>{{ form.latitude }}</div>
+          <div class="col-md-3"><label class="form-label">Longitude</label>{{ form.longitude }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <!-- Contact Info -->
+    <div class="data-card mb-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-person me-2 text-success"></i>Contact Info</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Contact Name</label>{{ form.contact_name }}</div>
+          <div class="col-12"><label class="form-label">Contact Title</label>{{ form.contact_title }}</div>
+          <div class="col-12"><label class="form-label">Phone</label>{{ form.phone }}</div>
+          <div class="col-12"><label class="form-label">Email</label>{{ form.email }}</div>
+          <div class="col-12"><label class="form-label">Website</label>{{ form.website }}</div>
+        </div>
+      </div>
+    </div>
+    <!-- Social Links -->
+    <div class="data-card mb-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-share me-2 text-info"></i>Social Links</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label"><i class="bi bi-facebook text-primary me-1"></i> Facebook</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-facebook"></i></span>
+              {{ form.facebook }}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label"><i class="bi bi-instagram text-danger me-1"></i> Instagram</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-instagram"></i></span>
+              {{ form.instagram }}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label"><i class="bi bi-twitter-x text-info me-1"></i> Twitter / X</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-twitter-x"></i></span>
+              {{ form.twitter }}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label"><i class="bi bi-link-45deg text-secondary me-1"></i> Other Link</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+              {{ form.social_link }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Save -->
+    <div class="data-card p-3 d-flex flex-column gap-2">
+      <button type="submit" class="btn btn-gold w-100"><i class="bi bi-check-lg me-2"></i>{{ title }}</button>
+      <a href="{% url 'location_list' %}" class="btn btn-outline-secondary w-100">Cancel</a>
+      {% if obj %}
+      <a href="{% url 'location_delete' obj.pk %}" class="btn btn-outline-danger w-100"><i class="bi bi-trash me-2"></i>Delete Location</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+{% endblock %}

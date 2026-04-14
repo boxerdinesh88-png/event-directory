@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Email Blasts – Event Directory and Logistic{% endblock %}
+{% block page_title %}Email Blasts{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div><h5 class="text-white mb-1">Email Campaigns</h5><p class="text-muted small mb-0">Send targeted email blasts to Event Directory and Logistic locations & contacts</p></div>
+  <a href="{% url 'email_compose' %}" class="btn btn-gold btn-sm"><i class="bi bi-envelope-plus me-1"></i>Compose Blast</a>
+</div>
+
+<div class="data-card">
+  <div class="table-responsive">
+  <table class="table table-dark table-hover mb-0">
+      <thead><tr><th>Subject</th><th>Recipients</th><th>Status</th><th>Sent</th><th>Failed</th><th>Schedule / Sent</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for blast in blasts %}
+        <tr>
+          <td>
+            <div class="fw-semibold text-white">
+              <a href="{% url 'email_detail' blast.pk %}" class="text-decoration-none text-white">
+                {{ blast.subject|truncatechars:50 }}
+              </a>
+            </div>
+            <div class="text-muted small">{{ blast.recipient_type }}</div>
+          </td>
+          <td class="small">{{ blast.get_recipient_type_display|default:blast.recipient_type }}</td>
+          <td><span class="badge badge-{% if blast.status == 'sent' %}active{% elif blast.status == 'failed' %}inactive{% elif blast.status == 'sending' %}warning{% elif blast.status == 'cancelled' %}warning{% else %}pending{% endif %} rounded-pill">{{ blast.status|title }}</span></td>
+          <td>{% if blast.total_sent %}<span class="text-success">{{ blast.total_sent }}</span>{% else %}—{% endif %}</td>
+          <td>{% if blast.total_failed %}<span class="text-danger">{{ blast.total_failed }}</span>{% else %}—{% endif %}</td>
+          <td class="small text-muted">
+            {% if blast.scheduled_at %}
+              <div>Sched: {{ blast.scheduled_at|date:"M d, Y H:i" }}</div>
+            {% endif %}
+            {% if blast.sent_at %}
+              <div>Sent: {{ blast.sent_at|date:"M d, Y H:i" }}</div>
+            {% else %}
+              <div>Created: {{ blast.created_at|date:"M d, Y H:i" }}</div>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'email_detail' blast.pk %}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:.7rem;">
+                <i class="bi bi-eye"></i> View
+              </a>
+              {% if blast.status == 'draft' or blast.status == 'scheduled' or blast.status == 'sending' %}
+              <a href="{% url 'email_cancel' blast.pk %}" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:.7rem;" onclick="return confirm('Cancel this blast?')">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+              {% endif %}
+              {% if blast.status == 'draft' or blast.status == 'scheduled' %}
+              <a href="{% url 'email_send' blast.pk %}" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size:.7rem;" onclick="return confirm('Send this blast now?')">
+                <i class="bi bi-send"></i> Send
+              </a>
+              {% endif %}
+              <a href="{% url 'email_delete' blast.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.7rem;">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-5"><div style="font-size:3rem;">📧</div><div class="mt-2">No email blasts yet. <a href="{% url 'email_compose' %}" style="color:#f5a623;">Compose your first blast</a>.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if blasts.has_other_pages %}
+<nav aria-label="pagination" class="mt-4">
+  <ul class="pagination justify-content-center">
+    {% if blasts.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+      <li class="page-item"><a class="page-link" href="?page={{ blasts.previous_page_number }}">Previous</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    {% for num in blasts.paginator.page_range %}
+      {% if blasts.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% elif num > blasts.number|add:'-3' and num < blasts.number|add:'3' %}
+        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if blasts.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ blasts.next_page_number }}">Next</a></li>
+      <li class="page-item"><a class="page-link" href="?page={{ blasts.paginator.num_pages }}">Last</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

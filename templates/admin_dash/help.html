@@ -1,0 +1,2401 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Help & Guide – Event Directory and Logistic{% endblock %}
+{% block page_title %}Help Center{% endblock %}
+
+{% block content %}
+<style>
+.help-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Hero Section */
+.help-hero {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.1) 0%, rgba(108, 60, 245, 0.05) 100%);
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  border: 1px solid var(--fe-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.help-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(245, 166, 35, 0.1) 0%, transparent 50%);
+  animation: pulse-bg 4s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.help-hero-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--fe-gold), var(--fe-gold-dark));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  color: #000;
+  box-shadow: 0 10px 40px rgba(245, 166, 35, 0.3);
+  animation: float 3s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.help-hero h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.help-hero p {
+  color: #64748b;
+  font-size: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Navigation Tabs */
+.help-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: var(--fe-card);
+  border-radius: 16px;
+  border: 1px solid var(--fe-border);
+}
+
+.help-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.help-nav-btn:hover {
+  background: rgba(245, 166, 35, 0.1);
+  color: var(--fe-gold);
+}
+
+.help-nav-btn.active {
+  background: linear-gradient(135deg, var(--fe-gold), var(--fe-gold-dark));
+  color: #000;
+  font-weight: 600;
+}
+
+/* Section Styles */
+.help-section {
+  display: none;
+  animation: fadeInUp 0.5s ease;
+}
+
+.help-section.active {
+  display: block;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.help-section-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.help-section-card:hover {
+  border-color: rgba(245, 166, 35, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.help-section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--fe-border);
+}
+
+.help-section-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.help-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.help-section-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Feature Grid */
+.help-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.help-feature-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.help-feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--fe-gold), var(--fe-purple));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.help-feature-card:hover {
+  background: #fff;
+  border-color: rgba(245, 166, 35, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.help-feature-card:hover::before {
+  opacity: 1;
+}
+
+.help-feature-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(245, 166, 35, 0.12);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--fe-gold);
+  font-size: 1.1rem;
+}
+
+.help-feature-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.help-feature-card p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Steps */
+.help-steps {
+  counter-reset: step;
+}
+
+.help-step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.help-step:hover {
+  background: #fff;
+  border-color: rgba(245, 166, 35, 0.3);
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.help-step-number {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: linear-gradient(135deg, var(--fe-gold), var(--fe-gold-dark));
+  color: #000;
+  font-weight: 800;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(245, 166, 35, 0.3);
+}
+
+.help-step-content h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.help-step-content p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Info List */
+.help-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.help-info-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.help-info-list li:hover {
+  padding-left: 0.5rem;
+  background: rgba(245, 166, 35, 0.02);
+}
+
+.help-info-list li:last-child {
+  border-bottom: none;
+}
+
+.help-info-bullet {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  background: linear-gradient(135deg, var(--fe-gold), var(--fe-gold-dark));
+  border-radius: 50%;
+  margin-top: 0.4rem;
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.3);
+}
+
+.help-info-content strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.help-info-content p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0.25rem 0 0;
+  line-height: 1.5;
+}
+
+/* URL Card */
+.help-url-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--fe-border);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.help-url-card:hover {
+  background: rgba(245, 166, 35, 0.05);
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+.help-url-path {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.85rem;
+  color: var(--fe-gold);
+  background: rgba(245, 166, 35, 0.1);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+}
+
+.help-url-desc {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+/* Troubleshooting */
+.help-issue {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.help-issue:hover {
+  background: #fff;
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.help-issue-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  font-size: 1.1rem;
+}
+
+.help-issue-content h5 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.help-issue-content p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 0.5rem;
+}
+
+.help-solution {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #059669;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Accordion */
+.help-accordion {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.help-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.help-accordion-header:hover {
+  background: #f1f5f9;
+}
+
+.help-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.help-accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.help-accordion.open .help-accordion-icon {
+  transform: rotate(180deg);
+}
+
+.help-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.help-accordion.open .help-accordion-content {
+  max-height: 500px;
+}
+
+.help-accordion-body {
+  padding: 1.25rem;
+}
+
+/* Stats */
+.help-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.help-stat-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.help-stat-card:hover {
+  background: #fff;
+  border-color: rgba(245, 166, 35, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.help-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--fe-gold), var(--fe-gold-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.help-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Model Table */
+.help-models-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.help-models-table th,
+.help-models-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--fe-border);
+  font-size: 0.85rem;
+}
+
+.help-models-table th {
+  color: var(--fe-gold);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.help-models-table td {
+  color: #d1d5db;
+}
+
+.help-models-table tr:hover td {
+  background: rgba(245, 166, 35, 0.05);
+}
+
+/* Dark Theme Adjustments */
+html[data-bs-theme="dark"] .help-hero {
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.1) 0%, rgba(108, 60, 245, 0.05) 100%);
+}
+
+html[data-bs-theme="dark"] .help-hero h1 {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-hero p {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-nav {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-nav-btn {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-section-card {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-section-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+html[data-bs-theme="dark"] .help-section-header {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-section-title {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-section-desc {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-feature-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-feature-card:hover {
+  background: rgba(245, 166, 35, 0.05);
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+html[data-bs-theme="dark"] .help-feature-card h4 {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-feature-card p {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-step {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-step:hover {
+  background: rgba(245, 166, 35, 0.03);
+  border-color: rgba(245, 166, 35, 0.2);
+}
+
+html[data-bs-theme="dark"] .help-step-content h5 {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-step-content p {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-info-list li {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-info-list li:hover {
+  background: rgba(245, 166, 35, 0.02);
+}
+
+html[data-bs-theme="dark"] .help-info-content strong {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-info-content p {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-issue {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-issue:hover {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+html[data-bs-theme="dark"] .help-issue-content h5 {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-issue-content p {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] .help-accordion {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-accordion-header {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+html[data-bs-theme="dark"] .help-accordion-header:hover {
+  background: rgba(245, 166, 35, 0.05);
+}
+
+html[data-bs-theme="dark"] .help-accordion-title {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-accordion-content {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+html[data-bs-theme="dark"] .help-stat-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-stat-card:hover {
+  background: rgba(245, 166, 35, 0.05);
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+html[data-bs-theme="dark"] .help-models-table th {
+  color: var(--fe-gold);
+}
+
+html[data-bs-theme="dark"] .help-models-table td {
+  color: #d1d5db;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-models-table tr:hover td {
+  background: rgba(245, 166, 35, 0.05);
+}
+
+html[data-bs-theme="dark"] p {
+  color: #9ca3af;
+}
+
+html[data-bs-theme="dark"] h4 {
+  color: #ffffff;
+}
+
+html[data-bs-theme="dark"] .help-url-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-bs-theme="dark"] .help-url-card:hover {
+  background: rgba(245, 166, 35, 0.05);
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+html[data-bs-theme="dark"] .help-url-desc {
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .help-hero {
+    padding: 2rem 1rem;
+  }
+  
+  .help-hero h1 {
+    font-size: 1.5rem;
+  }
+  
+  .help-nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .help-nav-btn {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+  }
+  
+  .help-features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .help-stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animations on Scroll */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease;
+}
+
+.animate-on-scroll.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Scrollbar for nav */
+.help-nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.help-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.help-nav::-webkit-scrollbar-thumb {
+  background: var(--fe-border);
+  border-radius: 3px;
+}
+
+/* Dark theme overrides for inline styles */
+html[data-bs-theme="dark"] .help-section-icon[style*="color: #818cf8"] {
+  color: #818cf8 !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="color: #34d399"] {
+  color: #34d399 !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="color: #fbbf24"] {
+  color: #fbbf24 !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="color: #f87171"] {
+  color: #f87171 !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="color: #60a5fa"] {
+  color: #60a5fa !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="color: #fff"] {
+  color: #fff !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="color: #1877f2"] {
+  color: #1877f2 !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="color: #e1306c"] {
+  color: #e1306c !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="color: #1da1f2"] {
+  color: #1da1f2 !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="color: #0a66c2"] {
+  color: #0a66c2 !important;
+}
+
+html[data-bs-theme="dark"] h4[style*="color: #fff"] {
+  color: #ffffff !important;
+}
+
+html[data-bs-theme="dark"] h4[style*="color: #0f172a"] {
+  color: #ffffff !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(99, 102, 241, 0.15)"] {
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(16, 185, 129, 0.15)"] {
+  background: rgba(16, 185, 129, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(245, 158, 11, 0.15)"] {
+  background: rgba(245, 158, 11, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(239, 68, 68, 0.15)"] {
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(108, 60, 245, 0.15)"] {
+  background: rgba(108, 60, 245, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(129, 140, 248, 0.15)"] {
+  background: rgba(129, 140, 248, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(232, 121, 249, 0.15)"] {
+  background: rgba(232, 121, 249, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-section-icon[style*="background: rgba(251, 146, 60, 0.15)"] {
+  background: rgba(251, 146, 60, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="background: rgba(24, 119, 242, 0.15)"] {
+  background: rgba(24, 119, 242, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="background: rgba(225, 48, 108, 0.15)"] {
+  background: rgba(225, 48, 108, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="background: rgba(29, 161, 242, 0.15)"] {
+  background: rgba(29, 161, 242, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="background: rgba(10, 102, 194, 0.15)"] {
+  background: rgba(10, 102, 194, 0.15) !important;
+}
+
+html[data-bs-theme="dark"] .help-feature-icon[style*="background: rgba(0, 0, 0, 0.15)"] {
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+</style>
+
+<div class="help-wrapper">
+  <!-- Hero Section -->
+  <div class="help-hero">
+    <div class="help-hero-icon">
+      <i class="bi bi-question-circle"></i>
+    </div>
+    <h1>Event Directory and Logistic Help Center</h1>
+    <p>Your complete guide to managing events, contacts, and marketing campaigns</p>
+  </div>
+
+  <!-- Quick Start Guide -->
+  <div class="help-section-card mb-4" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(108, 60, 245, 0.05) 100%);">
+    <div class="help-section-header mb-3">
+      <div class="help-section-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+        <i class="bi bi-rocket-takeoff"></i>
+      </div>
+      <div>
+        <h3 class="help-section-title">🚀 Quick Start Guide</h3>
+        <p class="help-section-desc">New here? Get started in 5 minutes!</p>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.03);">
+          <div class="badge bg-primary rounded-pill">1</div>
+          <div>
+            <h6 class="mb-1">Register Account</h6>
+            <p class="small text-muted mb-0">Click "Register" and enter your email. We'll send a verification code.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.03);">
+          <div class="badge bg-success rounded-pill">2</div>
+          <div>
+            <h6 class="mb-1">Add Locations</h6>
+            <p class="small text-muted mb-0">Go to Locations and add your event venues with address details.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.03);">
+          <div class="badge bg-warning rounded-pill" style="color:#000;">3</div>
+          <div>
+            <h6 class="mb-1">Import Contacts</h6>
+            <p class="small text-muted mb-0">Go to Contacts and import your audience using Excel/CSV file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.03);">
+          <div class="badge bg-info rounded-pill">4</div>
+          <div>
+            <h6 class="mb-1">Send Campaign</h6>
+            <p class="small text-muted mb-0">Choose Email or SMS, write your message, and hit Send!</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.03);">
+          <div class="badge bg-danger rounded-pill">5</div>
+          <div>
+            <h6 class="mb-1">Check Reports</h6>
+            <p class="small text-muted mb-0">View Analytics to see how your campaigns performed.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.03);">
+          <div class="badge bg-secondary rounded-pill">6</div>
+          <div>
+            <h6 class="mb-1">Promote Events</h6>
+            <p class="small text-muted mb-0">Submit events to directories and post on social media.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GETTING STARTED SECTION -->
+  <div id="section-getting-started" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">
+          <i class="bi bi-box-arrow-in-right"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Account & Login</h3>
+          <p class="help-section-desc">How to register, login, and reset password</p>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-person-plus me-2"></i>How do I register a new account?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Click <strong>Register</strong> on the login page</li>
+              <li class="mb-2">Enter your <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Email</strong></li>
+              <li class="mb-2">Create a <strong>Password</strong> (minimum 8 characters)</li>
+              <li class="mb-2">Click <strong>Create Account</strong></li>
+              <li class="mb-2">Check your email for a <strong>6-digit OTP code</strong></li>
+              <li class="mb-2">Enter the code to <strong>verify your email</strong></li>
+              <li>That's it! You're now logged in.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-key me-2"></i>How do I login?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Go to the <strong>Login</strong> page</li>
+              <li class="mb-2">Enter your <strong>Email</strong> and <strong>Password</strong></li>
+              <li class="mb-2">Click <strong>Sign In</strong></li>
+              <li class="mb-2">If enabled, enter the <strong>OTP code</strong> from your email</li>
+              <li>You'll be redirected to the Dashboard</li>
+            </ol>
+            <div class="alert alert-info mt-2"><i class="bi bi-info-circle me-2"></i>Tip: Enable Two-Factor Authentication in Settings for extra security!</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-arrow-repeat me-2"></i>How do I reset my password?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Go to <strong>Login</strong> page</li>
+              <li class="mb-2">Click <strong>"Forgot Password?"</strong></li>
+              <li class="mb-2">Enter your <strong>email address</strong></li>
+              <li class="mb-2">Check email for <strong>reset link</strong></li>
+              <li class="mb-2">Click the link and create a <strong>new password</strong></li>
+              <li>Login with your new password</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-shield-lock me-2"></i>How do I enable Two-Factor Authentication?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Click your <strong>profile name</strong> in top-right corner</li>
+              <li class="mb-2">Go to <strong>Settings</strong></li>
+              <li class="mb-2">Find <strong>"Two-Factor Authentication"</strong></li>
+              <li class="mb-2">Click <strong>"Configure"</strong></li>
+              <li class="mb-2">Enter your phone number</li>
+              <li>Verify with OTP and you're protected!</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Overview -->
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+          <i class="bi bi-speedometer2"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Dashboard Overview</h3>
+          <p class="help-section-desc">Understanding your main dashboard</p>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-warning"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</h6>
+            <p class="small text-muted mb-0">Your home page. Shows quick stats, recent activity, and quick actions.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-primary"><i class="bi bi-geo-alt-fill me-2"></i>Locations</h6>
+            <p class="small text-muted mb-0">Add and manage event venues. Each has address, capacity, amenities.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-success"><i class="bi bi-people-fill me-2"></i>Contacts</h6>
+            <p class="small text-muted mb-0">Your audience/mailing list. Import from Excel/CSV or add manually.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-danger"><i class="bi bi-envelope-fill me-2"></i>Email Blasts</h6>
+            <p class="small text-muted mb-0">Send bulk emails to your contacts. Use templates for speed.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-info"><i class="bi bi-chat-dots-fill me-2"></i>SMS Blast</h6>
+            <p class="small text-muted mb-0">Send text messages to contacts with phone numbers.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-secondary"><i class="bi bi-share-fill me-2"></i>Social Media</h6>
+            <p class="small text-muted mb-0">Post to Facebook, Instagram, Twitter, LinkedIn from one place.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-warning"><i class="bi bi-grid-fill me-2"></i>Event Directories</h6>
+            <p class="small text-muted mb-0">Submit events to free listing directories for more reach.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded" style="background: rgba(255,255,255,0.03);">
+            <h6 class="text-light"><i class="bi bi-bar-chart-fill me-2"></i>Reports</h6>
+            <p class="small text-muted mb-0">View analytics: emails sent, SMS delivered, posts published.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Management -->
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Profile Management</h3>
+          <p class="help-section-desc">Manage your personal information</p>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-person-fill me-2"></i>How do I update my profile?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Click your <strong>name</strong> in the top-right corner</li>
+              <li class="mb-2">Select <strong>"My Profile"</strong></li>
+              <li class="mb-2">Edit fields: <strong>First Name, Last Name, Bio, Phone, City, Company</strong></li>
+              <li class="mb-2">Click <strong>"Save Changes"</strong></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-camera me-2"></i>How do I change my profile photo?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Go to <strong>"My Profile"</strong></li>
+              <li class="mb-2">Click on the <strong>photo/avatar</strong> area</li>
+              <li class="mb-2">Select an image from your computer</li>
+              <li>Photo uploads automatically</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title"><i class="bi bi-shield-lock me-2"></i>How do I change my password?</div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            <ol class="ps-3">
+              <li class="mb-2">Go to <strong>"Settings"</strong></li>
+              <li class="mb-2">Find <strong>"Change Password"</strong> section</li>
+              <li class="mb-2">Enter <strong>Current Password</strong></li>
+              <li class="mb-2">Enter <strong>New Password</strong> (min 8 characters)</li>
+              <li class="mb-2">Confirm <strong>New Password</strong></li>
+              <li>Click <strong>"Update Password"</strong></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="help-nav">
+    <button class="help-nav-btn" onclick="showSection('getting-started')">
+      <i class="bi bi-rocket"></i> Getting Started
+    </button>
+    <button class="help-nav-btn active" onclick="showSection('locations')">
+      <i class="bi bi-geo-alt"></i> Locations
+    </button>
+    <button class="help-nav-btn" onclick="showSection('contacts')">
+      <i class="bi bi-people"></i> Contacts
+    </button>
+    <button class="help-nav-btn" onclick="showSection('email')">
+      <i class="bi bi-envelope"></i> Email
+    </button>
+    <button class="help-nav-btn" onclick="showSection('sms')">
+      <i class="bi bi-chat-dots"></i> SMS
+    </button>
+    <button class="help-nav-btn" onclick="showSection('social')">
+      <i class="bi bi-share"></i> Social
+    </button>
+    <button class="help-nav-btn" onclick="showSection('directories')">
+      <i class="bi bi-grid-3x3-gap"></i> Directories
+    </button>
+    <button class="help-nav-btn" onclick="showSection('data')">
+      <i class="bi bi-database"></i> Data
+    </button>
+    <button class="help-nav-btn" onclick="showSection('settings')">
+      <i class="bi bi-gear"></i> Settings
+    </button>
+    <button class="help-nav-btn" onclick="showSection('troubleshooting')">
+      <i class="bi bi-tools"></i> FAQ
+    </button>
+  </div>
+
+
+  <!-- LOCATIONS SECTION -->
+  <div id="section-locations" class="help-section active">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(129, 140, 248, 0.15); color: #818cf8;">
+          <i class="bi bi-geo-alt-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Locations Management</h3>
+          <p class="help-section-desc">Manage event venues and locations</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>Go to Locations</h5>
+            <p>Navigate to <strong>Dashboard → Locations</strong> or click the Locations link in the sidebar.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Add New Location</h5>
+            <p>Click the "Add Location" button. Fill in the form with venue details.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Fill Location Details</h5>
+            <p>Enter name, type (apartment/venue/club/restaurant/hotel/park/bar/lounge), address, city, contact info, social links, and capacity.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">4</div>
+          <div class="help-step-content">
+            <h5>Save & Manage</h5>
+            <p>Click Save. You can edit, view details, or delete locations anytime.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+          <i class="bi bi-list-check"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Location Types</h3>
+          <p class="help-section-desc">Different venue categories available</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Apartment Complex</strong>
+            <p>Residential communities and apartment buildings for events</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Venue</strong>
+            <p>General event venues and spaces</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Club</strong>
+            <p>Nightclubs and private clubs</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Restaurant</strong>
+            <p>Restaurants and dining venues</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Hotel</strong>
+            <p>Hotels and hospitality venues</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Park</strong>
+            <p>Parks and outdoor spaces</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Bar / Lounge</strong>
+            <p>Bars, lounges, and taverns</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="bi bi-funnel"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Filtering & Search</h3>
+          <p class="help-section-desc">Find locations quickly</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Text Search</strong>
+            <p>Search by name, city, or email address</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Type Filter</strong>
+            <p>Filter by location type (apartment, venue, club, etc.)</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Status Filter</strong>
+            <p>Filter by status: Active, Inactive, or Pending</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>City Filter</strong>
+            <p>Filter by specific city</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>View Toggle</strong>
+            <p>Switch between table view and grid/card view</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONTACTS SECTION -->
+  <div id="section-contacts" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(52, 211, 153, 0.15); color: #34d399;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Contacts Management</h3>
+          <p class="help-section-desc">Organize your audience and mailing list</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>Access Contacts</h5>
+            <p>Go to <strong>Dashboard → Contacts</strong> to view all contacts.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Add Contact Manually</h5>
+            <p>Click "Add Contact" and fill in name, email, phone, gender, age, city, and location link.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Bulk Import</h5>
+            <p>Use <strong>Import Data</strong> to upload Excel/CSV files. System auto-detects and maps fields.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">4</div>
+          <div class="help-step-content">
+            <h5>Smart Deduplication</h5>
+            <p>System automatically detects and merges duplicate contacts based on email, phone, and name.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(108, 60, 245, 0.15); color: #818cf8;">
+          <i class="bi bi-person-badge"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Contact Fields</h3>
+          <p class="help-section-desc">Information stored for each contact</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Full Name</strong>
+            <p>First name and last name combined</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Email Address</strong>
+            <p>Primary email for communications</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Phone Number</strong>
+            <p>Contact phone number</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Gender</strong>
+            <p>Gender information (optional)</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Age</strong>
+            <p>Age (optional)</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>City</strong>
+            <p>City of residence</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Location Link</strong>
+            <p>Associated venue or location</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Subscription Status</strong>
+            <p>Email subscription (subscribed/unsubscribed)</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EMAIL SECTION -->
+  <div id="section-email" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(248, 113, 113, 0.15); color: #f87171;">
+          <i class="bi bi-envelope-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Email Campaigns</h3>
+          <p class="help-section-desc">Send professional email blasts to your audience</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>Compose Email</h5>
+            <p>Go to <strong>Dashboard → Email → Compose</strong> or click "Compose Blast" in sidebar.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Select Recipients</h5>
+            <p>Choose to send to all contacts, by location, or specific contacts.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Write Content</h5>
+            <p>Enter subject line and body text. Use HTML for rich formatting.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">4</div>
+          <div class="help-step-content">
+            <h5>Schedule or Send</h5>
+            <p>Send immediately or schedule for a future date and time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">
+          <i class="bi bi-file-earmark-richtext-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Email Templates</h3>
+          <p class="help-section-desc">Save and reuse email designs</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Template Variables</strong>
+            <p>Use {First_Name}, {Venue_Name}, {Date}, {Link} for personalization</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Categories</strong>
+            <p>Organize templates by category (promotion, announcement, reminder)</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>From Name</strong>
+            <p>Set the sender name displayed in emails</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Quick Use</strong>
+            <p>One-click to use template when composing new email</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(96, 165, 250, 0.15); color: #60a5fa;">
+          <i class="bi bi-clock-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Scheduled Emails</h3>
+          <p class="help-section-desc">Send single emails to specific recipients later</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Single Recipient</strong>
+            <p>Send to one specific email address</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Custom Subject & Message</strong>
+            <p>Write custom content for each scheduled email</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Future Scheduling</strong>
+            <p>Choose exact date and time for delivery</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Send Now Option</strong>
+            <p>Override schedule and send immediately if needed</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SMS SECTION -->
+  <div id="section-sms" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(232, 121, 249, 0.15); color: #e879f9;">
+          <i class="bi bi-chat-dots-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">SMS Blast Campaigns</h3>
+          <p class="help-section-desc">Send text messages to your contacts</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>Configure SMS Provider</h5>
+            <p>First, go to <strong>Settings → SMS</strong> to configure your SMS provider (Twilio, Textbelt, Plivo, Vonage).</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Compose SMS</h5>
+            <p>Go to <strong>Dashboard → SMS Blast</strong> and create new SMS campaign.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Write Message</h5>
+            <p>Keep message under 160 characters for single SMS. Preview character count.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">4</div>
+          <div class="help-step-content">
+            <h5>Select Recipients</h5>
+            <p>Target by city or add custom phone numbers manually.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(167, 139, 250, 0.15); color: #a78bfa;">
+          <i class="bi bi-provider"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">SMS Providers</h3>
+          <p class="help-section-desc">Available SMS gateway services</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Twilio</strong>
+            <p>Popular and reliable. Requires account SID and Auth Token.</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Textbelt</strong>
+            <p>Free option available. Good for testing.</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Plivo</strong>
+            <p>Enterprise-grade SMS solution.</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Vonage</strong>
+            <p>Global SMS API provider.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SOCIAL SECTION -->
+  <div id="section-social" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+          <i class="bi bi-share-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Social Media Management</h3>
+          <p class="help-section-desc">Post to multiple platforms from one place</p>
+        </div>
+      </div>
+
+      <div class="help-features-grid">
+        <div class="help-feature-card">
+          <div class="help-feature-icon" style="background: rgba(24, 119, 242, 0.15); color: #1877f2;">
+            <i class="bi bi-facebook"></i>
+          </div>
+          <h4>Facebook</h4>
+          <p>Post to Facebook Pages using Graph API</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon" style="background: rgba(225, 48, 108, 0.15); color: #e1306c;">
+            <i class="bi bi-instagram"></i>
+          </div>
+          <h4>Instagram</h4>
+          <p>Post to Instagram via Facebook Graph API</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon" style="background: rgba(29, 161, 242, 0.15); color: #1da1f2;">
+            <i class="bi bi-twitter"></i>
+          </div>
+          <h4>Twitter/X</h4>
+          <p>Tweet using Twitter OAuth 1.0a</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon" style="background: rgba(10, 102, 194, 0.15); color: #0a66c2;">
+            <i class="bi bi-linkedin"></i>
+          </div>
+          <h4>LinkedIn</h4>
+          <p>Share on LinkedIn profiles and pages</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon" style="background: rgba(0, 0, 0, 0.15); color: #fff;">
+            <i class="bi bi-threads"></i>
+          </div>
+          <h4>Threads</h4>
+          <p>Post to Threads (Meta's Twitter alternative)</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon" style="background: rgba(230, 0, 35, 0.15); color: #e60023;">
+            <i class="bi bi-pinterest"></i>
+          </div>
+          <h4>Pinterest</h4>
+          <p>Pin event images and links to Pinterest boards</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="bi bi-cloud-arrow-up"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Post Workflow</h3>
+          <p class="help-section-desc">How to create and publish social posts</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>Connect Accounts</h5>
+            <p>Go to <strong>Social Media</strong> and add your social accounts with API credentials.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Create Post</h5>
+            <p>Click "Create Post" and write your caption/content.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Select Platforms</h5>
+            <p>Choose which platforms to post to (can select multiple).</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">4</div>
+          <div class="help-step-content">
+            <h5>Add Media</h5>
+            <p>Upload images if needed. Supported formats: JPG, PNG, GIF.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">5</div>
+          <div class="help-step-content">
+            <h5>Schedule or Post Now</h5>
+            <p>Set a future date/time or post immediately.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIRECTORIES SECTION -->
+  <div id="section-directories" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(251, 146, 60, 0.15); color: #fb923c;">
+          <i class="bi bi-grid-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Event Directories</h3>
+          <p class="help-section-desc">Track submissions to event listing sites</p>
+        </div>
+      </div>
+
+      <p style="color: #9ca3af; font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem;">
+        Event directories help increase visibility for your events. Track submissions to ensure your events are listed on multiple platforms.
+      </p>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Eventbrite</strong>
+            <p>Major event ticketing and discovery platform</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Meetup</strong>
+            <p>Community and interest-based event platform</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Patch.com</strong>
+            <p>Local news and community events</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Facebook Events</strong>
+            <p>Social event discovery on Facebook</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Eventful</strong>
+            <p>Events discovery platform</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="bi bi-clipboard-check"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Submission Tracking</h3>
+          <p class="help-section-desc">Monitor your directory submissions</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>View Directories</h5>
+            <p>Go to <strong>Dashboard → Directories</strong> to see available platforms.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Add Submission</h5>
+            <p>Track each event submission with event title, date, and location.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Update Status</h5>
+            <p>Mark as pending, submitted, approved, or rejected.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA SECTION -->
+  <div id="section-data" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="bi bi-upload"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Data Import</h3>
+          <p class="help-section-desc">Import locations and contacts from Excel/CSV</p>
+        </div>
+      </div>
+
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-number">1</div>
+          <div class="help-step-content">
+            <h5>Prepare File</h5>
+            <p>Create Excel (.xlsx) or CSV file with your data. Include headers in the first row.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">2</div>
+          <div class="help-step-content">
+            <h5>Upload</h5>
+            <p>Go to <strong>Dashboard → Import Data</strong> and upload your file.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">3</div>
+          <div class="help-step-content">
+            <h5>Review Mapping</h5>
+            <p>System auto-detects sheet type and maps columns. Review and adjust if needed.</p>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-number">4</div>
+          <div class="help-step-content">
+            <h5>Import</h5>
+            <p>Click Import. View results showing rows imported and any errors.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+          <i class="bi bi-bar-chart-line-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Reports & Analytics</h3>
+          <p class="help-section-desc">View statistics and campaign metrics</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Dashboard Overview</strong>
+            <p>Quick stats showing locations, contacts, emails, and posts</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Charts & Graphs</strong>
+            <p>Visual charts showing locations by city and type</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Recent Activity</strong>
+            <p>Latest locations and contacts added</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Campaign Stats</strong>
+            <p>Track email and social post performance</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SETTINGS SECTION -->
+  <div id="section-settings" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+          <i class="bi bi-gear-fill"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Settings & Configuration</h3>
+          <p class="help-section-desc">Configure your account and system preferences</p>
+        </div>
+      </div>
+
+      <div class="help-features-grid">
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-person-circle"></i></div>
+          <h4>Profile Settings</h4>
+          <p>Update name, email, phone, bio, and profile photo</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-key"></i></div>
+          <h4>Change Password</h4>
+          <p>Update your account password securely</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-palette"></i></div>
+          <h4>Theme Toggle</h4>
+          <p>Switch between dark and light mode</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-shield-check"></i></div>
+          <h4>OTP Setup</h4>
+          <p>Configure OTP provider for login verification</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="bi bi-palette2"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Theme System</h3>
+          <p class="help-section-desc">Dark and light mode with smooth transitions</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Dark Mode (Default)</strong>
+            <p>Easy on the eyes with dark backgrounds and light text</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Light Mode</strong>
+            <p>Classic look with light backgrounds and dark text</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Auto-Save</strong>
+            <p>Theme preference saved to browser localStorage</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Toggle Location</strong>
+            <p>Click the sun/moon icon in the top navigation bar</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <i class="bi bi-envelope-at"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">OTP Configuration</h3>
+          <p class="help-section-desc">Set up email verification for login</p>
+        </div>
+      </div>
+
+      <p style="color: #9ca3af; font-size: 0.9rem; line-height: 1.7; margin-bottom: 1rem;">
+        OTP (One-Time Password) adds extra security to your login. A 6-digit code is sent to your email each time you log in.
+      </p>
+
+      <div class="help-features-grid">
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-terminal"></i></div>
+          <h4>SMTP (Console)</h4>
+          <p>Development mode - prints codes to console</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-cloud"></i></div>
+          <h4>Brevo (Sendinblue)</h4>
+          <p>300 emails/day free</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+          <h4>Mailgun</h4>
+          <p>100 emails/day free</p>
+        </div>
+        <div class="help-feature-card">
+          <div class="help-feature-icon"><i class="bi bi-send"></i></div>
+          <h4>Resend</h4>
+          <p>3,000 emails/month free</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TROUBLESHOOTING SECTION -->
+  <div id="section-troubleshooting" class="help-section">
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Common Issues</h3>
+          <p class="help-section-desc">Solutions to frequent problems</p>
+        </div>
+      </div>
+
+      <div class="help-issue">
+        <div class="help-issue-icon"><i class="bi bi-envelope-x"></i></div>
+        <div class="help-issue-content">
+          <h5>OTP Code Not Received</h5>
+          <p>Email may take a few minutes. Check spam folder. Codes expire after 10 minutes.</p>
+          <div class="help-solution"><i class="bi bi-check-circle"></i> Use password login or request new code</div>
+        </div>
+      </div>
+
+      <div class="help-issue">
+        <div class="help-issue-icon"><i class="bi bi-file-earmark-x"></i></div>
+        <div class="help-issue-content">
+          <h5>Import Failed</h5>
+          <p>File may be corrupted or in wrong format. Ensure UTF-8 encoding.</p>
+          <div class="help-solution"><i class="bi bi-check-circle"></i> Save as .xlsx or .csv with UTF-8 encoding</div>
+        </div>
+      </div>
+
+      <div class="help-issue">
+        <div class="help-issue-icon"><i class="bi bi-share-x"></i></div>
+        <div class="help-issue-content">
+          <h5>Social Post Failed</h5>
+          <p>Access token may have expired. Social platforms require periodic token refresh.</p>
+          <div class="help-solution"><i class="bi bi-check-circle"></i> Reconnect social account in settings</div>
+        </div>
+      </div>
+
+      <div class="help-issue">
+        <div class="help-issue-icon"><i class="bi bi-bar-chart"></i></div>
+        <div class="help-issue-content">
+          <h5>Charts Not Loading</h5>
+          <p>JavaScript may be disabled or blocked. Charts require Chart.js library.</p>
+          <div class="help-solution"><i class="bi bi-check-circle"></i> Enable JS and refresh page</div>
+        </div>
+      </div>
+
+      <div class="help-issue">
+        <div class="help-issue-icon"><i class="bi bi-image"></i></div>
+        <div class="help-issue-content">
+          <h5>Image Upload Failed</h5>
+          <p>File size may be too large or format not supported.</p>
+          <div class="help-solution"><i class="bi bi-check-circle"></i> Use JPG/PNG under 5MB</div>
+        </div>
+      </div>
+
+      <div class="help-issue">
+        <div class="help-issue-icon"><i class="bi bi-lock"></i></div>
+        <div class="help-issue-content">
+          <h5>Login Failed</h5>
+          <p>Email or password incorrect. Check caps lock and try again.</p>
+          <div class="help-solution"><i class="bi bi-check-circle"></i> Reset password via OTP or contact admin</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="bi bi-lightbulb"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">Pro Tips</h3>
+          <p class="help-section-desc">Get the most out of the platform</p>
+        </div>
+      </div>
+
+      <ul class="help-info-list">
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Use Keyboard Shortcuts</strong>
+            <p>Most browsers support Ctrl+F for search within pages</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Schedule in Advance</strong>
+            <p>Plan social posts and emails for optimal engagement times</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Personalize Content</strong>
+            <p>Use template variables like {First_Name} for better response rates</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Run Dedupe Regularly</strong>
+            <p>Merge duplicate contacts to keep your database clean</p>
+          </div>
+        </li>
+        <li>
+          <div class="help-info-bullet"></div>
+          <div class="help-info-content">
+            <strong>Export Data</strong>
+            <p>Use Django admin to export CSV backups of your data</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="help-section-card">
+      <div class="help-section-header">
+        <div class="help-section-icon" style="background: rgba(108, 60, 245, 0.15); color: #818cf8;">
+          <i class="bi bi-question-circle"></i>
+        </div>
+        <div>
+          <h3 class="help-section-title">FAQ</h3>
+          <p class="help-section-desc">Frequently asked questions</p>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title">
+            <i class="bi bi-envelope"></i> How do I change my email?
+          </div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            Currently, email changes require admin assistance. Contact support to update your email address.
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title">
+            <i class="bi bi-trash"></i> How do I delete my data?
+          </div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            Contact your administrator to delete your account and associated data. Data deletion is irreversible.
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title">
+            <i class="bi bi-globe"></i> Is there a mobile app?
+          </div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            No mobile app currently. The web app is fully responsive and works on mobile browsers.
+          </div>
+        </div>
+      </div>
+
+      <div class="help-accordion">
+        <div class="help-accordion-header" onclick="toggleAccordion(this)">
+          <div class="help-accordion-title">
+            <i class="bi bi-shield-check"></i> Is my data secure?
+          </div>
+          <i class="bi bi-chevron-down help-accordion-icon"></i>
+        </div>
+        <div class="help-accordion-content">
+          <div class="help-accordion-body">
+            Yes. Passwords are hashed, OTP codes expire, and sessions timeout after 1 hour of inactivity.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Support -->
+    <div class="help-section-card" style="text-align: center; padding: 2rem;">
+      <i class="bi bi-headset" style="font-size: 3rem; color: var(--fe-gold); margin-bottom: 1rem; display: block;"></i>
+      <h4 style="color: #fff; margin-bottom: 0.5rem;">Need Additional Help?</h4>
+      <p style="color: #6b7280; margin-bottom: 1.5rem;">Our support team is ready to assist you</p>
+      <a href="mailto:support@floridaevents.com" class="btn btn-gold" style="padding: 0.75rem 2rem;">
+        <i class="bi bi-envelope me-2"></i>Contact Support
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Section Navigation
+function showSection(sectionId) {
+  // Hide all sections
+  document.querySelectorAll('.help-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  
+  // Remove active from all nav buttons
+  document.querySelectorAll('.help-nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected section
+  document.getElementById('section-' + sectionId).classList.add('active');
+  
+  // Activate nav button
+  event.target.closest('.help-nav-btn').classList.add('active');
+  
+  // Trigger animations
+  setTimeout(() => {
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      el.classList.add('animated');
+    });
+  }, 100);
+}
+
+// Accordion Toggle
+function toggleAccordion(header) {
+  const accordion = header.closest('.help-accordion');
+  accordion.classList.toggle('open');
+}
+
+// Initialize animations on scroll
+document.addEventListener('DOMContentLoaded', function() {
+  // Trigger initial animations
+  setTimeout(() => {
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      el.classList.add('animated');
+    });
+  }, 200);
+  
+  // Intersection Observer for scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animated');
+      }
+    });
+  }, { threshold: 0.1 });
+  
+  document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    observer.observe(el);
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% block title %}Reports – Event Directory and Logistic{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Date Range Filter -->
+<form method="GET" class="data-card p-3 mb-4">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label" for="date_from">Date From</label>
+      <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label" for="date_to">Date To</label>
+      <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-gold btn-sm flex-fill"><i class="bi bi-funnel me-1"></i>Apply Filter</button>
+      <a href="{% url 'reports' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-lg"></i></a>
+    </div>
+    <div class="col-md-3 text-end">
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i>Print Report
+      </button>
+    </div>
+  </div>
+</form>
+
+<!-- KPI Summary Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-2">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(129,140,248,.15);"><i class="bi bi-geo-alt-fill" style="color:#818cf8;"></i></div>
+      <div class="stat-value" style="color:#818cf8;">{{ total_locations }}</div>
+      <div class="stat-label">Locations</div>
+      <div class="text-success" style="font-size:.7rem;">{{ active_locations }} active</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(52,211,153,.15);"><i class="bi bi-people-fill" style="color:#34d399;"></i></div>
+      <div class="stat-value" style="color:#34d399;">{{ contacts_total }}</div>
+      <div class="stat-label">Contacts</div>
+      <div class="text-success" style="font-size:.7rem;">{{ contacts_subscribed }} subscribed</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(239,68,68,.15);"><i class="bi bi-envelope-fill" style="color:#f87171;"></i></div>
+      <div class="stat-value" style="color:#f87171;">{{ email_stats.total_sent }}</div>
+      <div class="stat-label">Emails Sent</div>
+      <div class="text-muted" style="font-size:.7rem;">{{ email_stats.total }} blasts</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(245,166,35,.15);"><i class="bi bi-chat-dots-fill" style="color:#fbbf24;"></i></div>
+      <div class="stat-value" style="color:#fbbf24;">{{ sms_stats.total_sent }}</div>
+      <div class="stat-label">SMS Sent</div>
+      <div class="text-muted" style="font-size:.7rem;">{{ sms_stats.total }} blasts</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(99,102,241,.15);"><i class="bi bi-share-fill" style="color:#818cf8;"></i></div>
+      <div class="stat-value" style="color:#818cf8;">{{ social_stats.posted }}</div>
+      <div class="stat-label">Posts Live</div>
+      <div class="text-muted" style="font-size:.7rem;">{{ social_stats.total }} total</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-2">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(16,185,129,.15);"><i class="bi bi-grid-fill" style="color:#10b981;"></i></div>
+      <div class="stat-value" style="color:#10b981;">{{ dir_stats.confirmed }}</div>
+      <div class="stat-label">Dir. Confirmed</div>
+      <div class="text-muted" style="font-size:.7rem;">{{ dir_stats.total }} submitted</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 1: Locations -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Locations by City</div>
+      </div>
+      <div class="p-3"><canvas id="cityChart" height="180"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-pie-chart-fill text-warning me-2"></i>By Type</div>
+      </div>
+      <div class="p-3 d-flex align-items-center justify-content-center">
+        <canvas id="typeChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 2: Contacts + Email -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-people-fill text-success me-2"></i>Contacts by City (Top 10)</div>
+      </div>
+      <div class="p-3"><canvas id="contactCityChart" height="200"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-envelope-fill text-danger me-2"></i>Email Blast Status</div>
+      </div>
+      <div class="p-3 d-flex align-items-center justify-content-center">
+        <canvas id="emailStatusChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Social + Directory Charts -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-share-fill text-primary me-2"></i>Social Posts by Platform</div>
+      </div>
+      <div class="p-3"><canvas id="socialChart" height="200"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-grid-fill text-success me-2"></i>Directory Submissions</div>
+      </div>
+      <div class="p-3"><canvas id="dirChart" height="200"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Email Blasts Table -->
+<div class="data-card mb-4">
+  <div class="data-card-header">
+    <div class="data-card-title"><i class="bi bi-envelope-open-fill text-warning me-2"></i>Email Blast Report</div>
+    <a href="{% url 'email_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Subject</th><th>Recipient Type</th><th>Status</th>
+          <th>Sent ✓</th><th>Failed ✗</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for blast in recent_blasts %}
+        <tr>
+          <td>
+            <a href="{% url 'email_detail' blast.pk %}" class="text-white text-decoration-none fw-semibold">
+              {{ blast.subject|truncatechars:45 }}
+            </a>
+          </td>
+          <td class="text-muted small">{{ blast.get_recipient_type_display|default:blast.recipient_type }}</td>
+          <td>
+            <span class="badge badge-{% if blast.status == 'sent' %}active{% elif blast.status == 'failed' %}inactive{% elif blast.status == 'sending' or blast.status == 'scheduled' %}upcoming{% else %}pending{% endif %} rounded-pill">
+              {{ blast.status|title }}
+            </span>
+          </td>
+          <td>
+            {% if blast.total_sent %}<span class="text-success fw-semibold">{{ blast.total_sent }}</span>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td>
+            {% if blast.total_failed %}<span class="text-danger fw-semibold">{{ blast.total_failed }}</span>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td class="text-muted small">{{ blast.created_at|date:"M d, Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No email blasts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Summary Stats Tables Side by Side -->
+<div class="row g-3 mb-4">
+  <!-- Locations by City -->
+  <div class="col-lg-4">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-geo-alt text-primary me-2"></i>Locations by City</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>City</th><th class="text-end">Count</th></tr></thead>
+          <tbody>
+            {% for row in locations_by_city %}
+            <tr>
+              <td class="text-white">{{ row.city|default:"Unknown" }}</td>
+              <td class="text-end">
+                <span class="badge badge-upcoming rounded-pill">{{ row.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted text-center py-3">No data</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contacts by City -->
+  <div class="col-lg-4">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-people text-success me-2"></i>Contacts by City</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>City</th><th class="text-end">Count</th></tr></thead>
+          <tbody>
+            {% for row in contacts_by_city %}
+            <tr>
+              <td class="text-white">{{ row.city|default:"Unknown" }}</td>
+              <td class="text-end">
+                <span class="badge badge-active rounded-pill">{{ row.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted text-center py-3">No data</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Directory Submissions by Directory -->
+  <div class="col-lg-4">
+    <div class="data-card h-100">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-grid text-info me-2"></i>Top Directories</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>Directory</th><th class="text-end">Submissions</th></tr></thead>
+          <tbody>
+            {% for row in dir_by_directory %}
+            <tr>
+              <td class="text-white">{{ row.directory__name|default:"Unknown"|truncatechars:22 }}</td>
+              <td class="text-end">
+                <span class="badge badge-pending rounded-pill">{{ row.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted text-center py-3">No submissions yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+typeof Chart === 'undefined' && (document.querySelectorAll('canvas[id$="Chart"]').forEach(el => el.parentElement.innerHTML = '<p class="text-muted text-center py-5">Chart.js failed to load.</p>'), window.Chart = function() {});
+const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+const gridColor = 'rgba(255,255,255,.06)';
+const tickColor = '#9ca3af';
+const baseOpts = {
+  responsive: true,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+    y: { grid: { color: gridColor }, ticks: { color: tickColor } }
+  }
+};
+
+// Locations by City - Colorful bars like dashboard
+  const cityData = {{ locations_by_city|safe }};
+  const cityColors = [
+    {bg:'rgba(249,115,22,.6)',  border:'#f97316'},
+    {bg:'rgba(129,140,248,.6)', border:'#818cf8'},
+    {bg:'rgba(52,211,153,.6)',  border:'#34d399'},
+    {bg:'rgba(248,113,113,.6)', border:'#f87171'},
+    {bg:'rgba(251,191,36,.6)',  border:'#fbbf24'},
+    {bg:'rgba(167,139,250,.6)', border:'#a78bfa'},
+    {bg:'rgba(56,189,248,.6)',  border:'#38bdf8'},
+    {bg:'rgba(251,146,60,.6)',  border:'#fb923c'},
+    {bg:'rgba(74,222,128,.6)',  border:'#4ade80'},
+    {bg:'rgba(244,114,182,.6)', border:'#f472b6'},
+  ];
+  new Chart(document.getElementById('cityChart'), {
+    type: 'bar',
+    data: {
+      labels: cityData.map(d => d.city || 'Unknown'),
+      datasets: [{
+        label: 'Locations', data: cityData.map(d => d.count),
+        backgroundColor: cityData.map(function(d, i) { return cityColors[i % cityColors.length].bg; }),
+        borderColor: cityData.map(function(d, i) { return cityColors[i % cityColors.length].border; }),
+        borderWidth: 1, borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9ca3af', stepSize: 1 } }
+      }
+    }
+  });
+
+// Locations by Type - Doughnut
+const typeData = {{ locations_by_type|safe }};
+const typeColors = { apartment:'#818cf8',venue:'#f87171',club:'#a78bfa',bar:'#fbbf24',
+  lounge:'#34d399',building:'#60a5fa',restaurant:'#10b981',hotel:'#f59e0b',
+  park:'#6ee7b7',other:'#9ca3af' };
+new Chart(document.getElementById('typeChart'), {
+  type: 'doughnut',
+  data: {
+    labels: typeData.map(d => d.type || 'Unknown'),
+    datasets: [{
+      data: typeData.map(d => d.count),
+      backgroundColor: typeData.map(d => typeColors[d.type] || '#9ca3af'),
+      borderWidth: 2, borderColor: '#111827'
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11 }, padding: 10 } } }, cutout: '60%' }
+});
+
+// Contacts by City - Colorful bars
+  const ccData = {{ contacts_by_city|safe }};
+  new Chart(document.getElementById('contactCityChart'), {
+    type: 'bar',
+    data: {
+      labels: ccData.map(d => d.city || 'Unknown'),
+      datasets: [{
+        label: 'Contacts', data: ccData.map(d => d.count),
+        backgroundColor: ccData.map(function(d, i) { return cityColors[i % cityColors.length].bg; }),
+        borderColor: ccData.map(function(d, i) { return cityColors[i % cityColors.length].border; }),
+        borderWidth: 1, borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9ca3af', stepSize: 1 } }
+      }
+    }
+  });
+
+// Email Status - Doughnut
+const emailData = [
+  { label: 'Sent',      val: {{ email_stats.sent }},      color: '#34d399' },
+  { label: 'Draft',     val: {{ email_stats.draft }},     color: '#9ca3af' },
+  { label: 'Scheduled', val: {{ email_stats.scheduled }}, color: '#818cf8' },
+  { label: 'Failed',    val: {{ email_stats.failed }},    color: '#f87171' },
+].filter(d => d.val > 0);
+if (emailData.length) {
+  new Chart(document.getElementById('emailStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: emailData.map(d => d.label),
+      datasets: [{ data: emailData.map(d => d.val), backgroundColor: emailData.map(d => d.color), borderWidth: 2, borderColor: '#111827' }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11 }, padding: 10 } } }, cutout: '60%' }
+  });
+} else {
+  document.getElementById('emailStatusChart').parentElement.innerHTML = '<p class="text-muted text-center py-5">No email blast data yet.</p>';
+}
+
+// Social by Platform - Colorful bars
+  var socialData = {{ social_by_platform|safe }};
+  if (document.getElementById('socialChart')) {
+    if (socialData.length) {
+      new Chart(document.getElementById('socialChart'), {
+        type: 'bar',
+        data: {
+          labels: socialData.map(function(d) { return d.platform || 'Unknown'; }),
+          datasets: [
+            { label: 'Total',  data: socialData.map(function(d) { return d.count; }),  backgroundColor: socialData.map(function(d, i) { return cityColors[i % cityColors.length].bg; }), borderColor: socialData.map(function(d, i) { return cityColors[i % cityColors.length].border; }), borderWidth: 1, borderRadius: 4 },
+            { label: 'Posted', data: socialData.map(function(d) { return (d.posted || 0); }), backgroundColor: socialData.map(function(d, i) { return cityColors[(i+5) % cityColors.length].bg; }), borderColor: socialData.map(function(d, i) { return cityColors[(i+5) % cityColors.length].border; }), borderWidth: 1, borderRadius: 4 }
+          ]
+        },
+        options: { 
+          responsive: true, 
+          plugins: { legend: { labels: { color: '#9ca3af' } } },
+          scales: { x: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9ca3af' } }, y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9ca3af' } } } 
+        }
+      });
+    } else {
+      document.getElementById('socialChart').parentElement.innerHTML = '<p class="text-muted text-center py-5">No social post data yet.</p>';
+    }
+  }
+
+// Directory Submissions
+const dirStatusData = {{ dir_by_status|safe }};
+const dirStatusColors = { pending:'#fbbf24', submitted:'#818cf8', confirmed:'#34d399', rejected:'#f87171' };
+if (dirStatusData.length) {
+  new Chart(document.getElementById('dirChart'), {
+    type: 'doughnut',
+    data: {
+      labels: dirStatusData.map(d => (d.status||'unknown').charAt(0).toUpperCase()+(d.status||'').slice(1)),
+      datasets: [{ data: dirStatusData.map(d => d.count), backgroundColor: dirStatusData.map(d => dirStatusColors[d.status]||'#9ca3af'), borderWidth: 2, borderColor: '#111827' }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11 }, padding: 10 } } }, cutout: '60%' }
+  });
+} else {
+  document.getElementById('dirChart').parentElement.innerHTML = '<p class="text-muted text-center py-5">No directory submissions yet.</p>';
+}
+</script>
+<style>
+@media print {
+  .sidebar, .topbar, form, .btn { display: none !important; }
+  .main-content { margin-left: 0 !important; }
+  .data-card { break-inside: avoid; border: 1px solid #ccc !important; }
+}
+</style>
+{% endblock %}

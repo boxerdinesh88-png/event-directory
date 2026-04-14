@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Create Post – Webinar System{% endblock %}
+{% block page_title %}<i class="bi bi-plus-square-dotted me-2" style="color: #f5a623;"></i>Create Bulk Post{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dest-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .dest-card:hover {
+        border-color: var(--primary);
+        background: rgba(102,126,234,0.05);
+    }
+    .dest-card.selected {
+        border-color: var(--primary);
+        background: rgba(102,126,234,0.1);
+    }
+    .dest-card input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .group-size-indicator {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+    }
+    .spin-hint {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        border-left: 3px solid #f5a623;
+        padding-left: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="{% url 'webinar_create_post' %}" enctype="multipart/form-data" id="postForm">
+    {% csrf_token %}
+    
+    <div class="row g-3">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Post Details -->
+            <div class="data-card mb-3">
+                <div class="data-card-header">
+                    <div class="data-card-title"><i class="bi bi-pencil-square text-primary me-2"></i>Post Content</div>
+                </div>
+                <div class="p-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Post Title *</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g., Free Dating Workshop" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Post Content *</label>
+                        <textarea name="content" class="form-control" rows="6" placeholder="Write your post content here..." required></textarea>
+                        <div class="form-text">This content will be posted to all selected groups and pages.</div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Link URL</label>
+                            <input type="url" name="link_url" class="form-control" placeholder="Registration or landing page link">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Attach to Event</label>
+                            <select name="event_id" class="form-select">
+                                <option value="">-- No Event --</option>
+                                {% for event in events %}
+                                    <option value="{{ event.pk }}">{{ event.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Post Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scheduling -->
+            <div class="data-card mb-3">
+                <div class="data-card-header">
+                    <div class="data-card-title"><i class="bi bi-clock-history text-info me-2"></i>Scheduling</div>
+                </div>
+                <div class="p-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Schedule For</label>
+                            <input type="datetime-local" name="scheduled_at" class="form-control">
+                            <div class="form-text">Leave empty to save as draft</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Delay Between Posts (minutes)</label>
+                            <input type="number" name="delay_minutes" class="form-control" value="5" min="1" max="60">
+                            <div class="form-text">Smart interval to avoid Facebook restrictions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Spin Text -->
+            <div class="data-card mb-3">
+                <div class="data-card-header">
+                    <div class="data-card-title"><i class="bi bi-shuffle text-warning me-2"></i>Spin Text Variations</div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning">Optional</span>
+                </div>
+                <div class="p-3">
+                    <div class="spin-hint mb-3">
+                        Add multiple variations of your content to avoid spam detection. Use {|} to separate options. Example: "Join us{|}Don't miss this{|}Be part of it"
+                    </div>
+                    <textarea name="spin_variations" class="form-control" rows="3" placeholder='{Join us|Don't miss this|Be part of it} free workshop...'></textarea>
+                    <div class="form-text">The system will randomly select one variation for each post.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Selection Sidebar -->
+        <div class="col-lg-4">
+            <!-- Select Groups -->
+            <div class="data-card mb-3">
+                <div class="data-card-header">
+                    <div class="data-card-title">
+                        <i class="bi bi-collection me-2" style="color: #667eea;"></i>Select Groups
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllGroups" onchange="toggleAllGroups(this)">
+                        <label class="form-check-label" for="selectAllGroups" style="font-size: 0.8rem;">Select All</label>
+                    </div>
+                </div>
+                <div class="p-3" style="max-height: 300px; overflow-y: auto;">
+                    {% if groups %}
+                        {% regroup groups by size_category as groups_by_size %}
+                        {% for size in groups_by_size %}
+                            <div class="mb-3">
+                                <div class="fw-semibold mb-2" style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    {% if size.grouper == 'small' %}
+                                        <span class="category-badge category-small">Small</span>
+                                    {% elif size.grouper == 'medium' %}
+                                        <span class="category-badge category-medium">Medium</span>
+                                    {% else %}
+                                        <span class="category-badge category-large">Large</span>
+                                    {% endif %}
+                                    ({{ size.list|length }})
+                                </div>
+                                {% for group in size.list %}
+                                    <div class="dest-card mb-2">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <input type="checkbox" name="selected_groups" value="{{ group.pk }}" class="group-checkbox" onchange="updateGroupCount()">
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold" style="font-size: 0.875rem;">{{ group.name }}</div>
+                                                <div class="d-flex gap-2 align-items-center" style="font-size: 0.75rem; color: var(--text-secondary);">
+                                                    <span>{{ group.member_count|default:"0"|intcomma }} members</span>
+                                                    {% if group.niche %}
+                                                        <span class="text-primary">• {{ group.niche }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3" style="color: var(--text-secondary);">
+                            <i class="bi bi-collection" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                            <p class="mb-0 mt-2" style="font-size: 0.8rem;">No groups added yet</p>
+                            <a href="{% url 'webinar_groups' %}" class="btn btn-sm btn-outline-primary mt-2">Add Groups</a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="p-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 0.85rem;">Selected:</span>
+                        <span class="badge bg-primary" id="groupCount">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Select Accounts -->
+            <div class="data-card mb-3">
+                <div class="data-card-header">
+                    <div class="data-card-title">
+                        <i class="bi bi-person-badge me-2" style="color: #22c55e;"></i>Select Accounts
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllAccounts" onchange="toggleAllAccounts(this)">
+                        <label class="form-check-label" for="selectAllAccounts" style="font-size: 0.8rem;">Select All</label>
+                    </div>
+                </div>
+                <div class="p-3" style="max-height: 200px; overflow-y: auto;">
+                    {% if accounts %}
+                        {% for account in accounts %}
+                            <div class="dest-card mb-2">
+                                <div class="d-flex align-items-start gap-2">
+                                    <input type="checkbox" name="selected_accounts" value="{{ account.pk }}" class="account-checkbox" onchange="updateAccountCount()">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold" style="font-size: 0.875rem;">{{ account.name }}</div>
+                                        <div class="d-flex gap-2 align-items-center" style="font-size: 0.75rem; color: var(--text-secondary);">
+                                            {% if account.account_type == 'page' %}
+                                                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.65rem;">Page</span>
+                                            {% else %}
+                                                <span class="badge bg-info bg-opacity-10 text-info" style="font-size: 0.65rem;">Group</span>
+                                            {% endif %}
+                                            {% if account.tags %}
+                                                <span>{{ account.tags }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3" style="color: var(--text-secondary);">
+                            <i class="bi bi-person-badge" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                            <p class="mb-0 mt-2" style="font-size: 0.8rem;">No accounts added yet</p>
+                            <a href="{% url 'webinar_accounts' %}" class="btn btn-sm btn-outline-success mt-2">Add Accounts</a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="p-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 0.85rem;">Selected:</span>
+                        <span class="badge bg-success" id="accountCount">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <div class="data-card">
+                <div class="p-3">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                            <i class="bi bi-send-fill me-2"></i>Create Post
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="previewPost()">
+                            <i class="bi bi-eye me-2"></i>Preview
+                        </button>
+                    </div>
+                    <div class="mt-3 text-center" style="font-size: 0.8rem; color: var(--text-secondary);">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Post will be sent to <span id="totalDest">0</span> destinations
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Post Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title" id="previewTitle">Post Title</h5>
+                        <p class="card-text" id="previewContent">Post content will appear here...</p>
+                        {% if groups %}
+                            <div class="mt-3">
+                                <h6>Will be posted to:</h6>
+                                <span id="previewGroups" class="text-muted">0 groups</span>
+                            </div>
+                        {% endif %}
+                        {% if accounts %}
+                            <div class="mt-2">
+                                <span id="previewAccounts" class="text-muted">0 accounts</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAllGroups(checkbox) {
+    document.querySelectorAll('.group-checkbox').forEach(cb => cb.checked = checkbox.checked);
+    updateGroupCount();
+}
+
+function toggleAllAccounts(checkbox) {
+    document.querySelectorAll('.account-checkbox').forEach(cb => cb.checked = checkbox.checked);
+    updateAccountCount();
+}
+
+function updateGroupCount() {
+    const count = document.querySelectorAll('.group-checkbox:checked').length;
+    document.getElementById('groupCount').textContent = count;
+    updateTotalDest();
+}
+
+function updateAccountCount() {
+    const count = document.querySelectorAll('.account-checkbox:checked').length;
+    document.getElementById('accountCount').textContent = count;
+    updateTotalDest();
+}
+
+function updateTotalDest() {
+    const groups = document.querySelectorAll('.group-checkbox:checked').length;
+    const accounts = document.querySelectorAll('.account-checkbox:checked').length;
+    document.getElementById('totalDest').textContent = groups + accounts;
+}
+
+function previewPost() {
+    const title = document.querySelector('input[name="title"]').value || 'No title';
+    const content = document.querySelector('textarea[name="content"]').value || 'No content';
+    const groups = document.querySelectorAll('.group-checkbox:checked').length;
+    const accounts = document.querySelectorAll('.account-checkbox:checked').length;
+    
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewContent').textContent = content;
+    document.getElementById('previewGroups').textContent = groups + ' groups';
+    document.getElementById('previewAccounts').textContent = accounts + ' accounts';
+    
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateGroupCount();
+    updateAccountCount();
+});
+</script>
+{% endblock %}

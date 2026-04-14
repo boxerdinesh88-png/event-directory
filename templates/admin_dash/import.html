@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Import Data – Event Directory and Logistic {% endblock %}
+{% block page_title %}Import Data{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="data-card">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-upload me-2 text-warning"></i>Upload File</div></div>
+      <div class="p-4">
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Import Type</label>
+            {{ form.import_type }}
+            <div class="form-text text-muted small mt-1">
+              Choose <strong style="color:#f5a623;">Auto Detect</strong> to process all Excel sheets automatically.
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">File (Excel or CSV)</label>
+            {{ form.file }}
+            <div class="form-text text-muted small mt-2">
+              Supports .xlsx, .xls, .csv — Columns are mapped automatically.<br>
+              <strong style="color:#f5a623;">Locations:</strong> name, address, city, state, zip, county, phone, email, website_url, facebook, instagram, twitter, social_link, contact, notes<br>
+              <strong style="color:#34d399;">Contacts:</strong> first_name, last_name, email, phone, city, state<br>
+              <strong style="color:#f87171;">Link Contacts to Location:</strong> add column <code>link_to_location</code> with location name (must match existing Location)<br>
+              <strong style="color:#22c55e;">Multi-sheet:</strong> Excel imports now process every usable sheet in one run.
+            </div>
+          </div>
+
+          <!-- Drop zone -->
+          <div id="dropZone" style="border:2px dashed rgba(245,166,35,.3);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1rem;"
+               ondragover="event.preventDefault();this.style.borderColor='#f5a623'"
+               ondragleave="this.style.borderColor='rgba(245,166,35,.3)'"
+               ondrop="handleDrop(event)">
+            <div style="font-size:3rem;margin-bottom:.5rem;color:#22c55e;"><i class="bi bi-check-circle-fill"></i></div>
+            <div style="color:#9ca3af;font-size:.875rem;">Drag & drop your Excel/CSV file here<br><span style="color:#f5a623;">or click Browse above</span></div>
+          </div>
+
+          <button type="submit" class="btn btn-gold w-100">
+            <i class="bi bi-cloud-upload me-2"></i>Import Data
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="data-card mt-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-lightbulb me-2 text-warning"></i>Import Tips</div></div>
+      <div class="p-4">
+        <ul class="small text-muted mb-0" style="line-height:2;">
+          <li>First row should be column headers</li>
+          <li>For locations: <code style="color:#818cf8;">name</code> column is required</li>
+          <li>For contacts: <code style="color:#818cf8;">email</code> column is required</li>
+          <li>Duplicates are skipped (matched by name+city for locations, email for contacts)</li>
+          <li>Partial rows are accepted — missing fields left blank</li>
+          <li>Maximum 10,000 rows per import</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    {% if last_sheet_results %}
+    <div class="data-card mb-4">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-table me-2 text-success"></i>Last Import Sheet Results</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>Sheet</th><th>Detected Type</th><th>Rows</th><th>Imported</th><th>Failed</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for item in last_sheet_results %}
+            <tr>
+              <td class="small fw-semibold">{{ item.sheet }}</td>
+              <td class="small text-capitalize">{{ item.type }}</td>
+              <td>{{ item.rows }}</td>
+              <td><span class="text-success">{{ item.imported }}</span></td>
+              <td><span class="{% if item.failed %}text-danger{% else %}text-muted{% endif %}">{{ item.failed }}</span></td>
+              <td class="small">
+                {% if item.status == 'ok' %}
+                  <span class="badge badge-active">Imported</span>
+                {% elif item.status == 'empty' %}
+                  <span class="badge badge-pending">Empty</span>
+                {% else %}
+                  <span class="badge badge-inactive">Skipped</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-clock-history me-2 text-primary"></i>Import History</div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark mb-0">
+          <thead><tr><th>File</th><th>Imported</th><th>Failed</th><th>By</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for log in logs %}
+            <tr>
+              <td class="small fw-semibold">{{ log.filename }}</td>
+              <td><span class="text-success">{{ log.rows_imported }}</span></td>
+              <td><span class="{% if log.rows_failed %}text-danger{% else %}text-muted{% endif %}">{{ log.rows_failed }}</span></td>
+              <td class="small text-muted">{{ log.imported_by.get_full_name|default:log.imported_by.username }}</td>
+              <td class="small text-muted">{{ log.created_at|date:"M d, Y g:i A" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No import history yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor='rgba(245,166,35,.3)';
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const input = document.querySelector('input[type=file]');
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    document.getElementById('dropZone').innerHTML = `<div style="font-size:2rem;color:#22c55e;"><i class="bi bi-check-circle-fill"></i></div><div style="color:#34d399;font-size:.875rem;">${file.name} ready to import</div>`;
+  }
+}
+</script>
+{% endblock %}

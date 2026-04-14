@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Webinar Dashboard – Decipher the Dating Code{% endblock %}
+{% block page_title %}Webinars – Decipher the Dating Code{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" rel="stylesheet">
+<style>
+    .webinar-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .webinar-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    .webinar-hero h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .webinar-hero p {
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    .stat-card-webinar {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.2s ease;
+    }
+    .stat-card-webinar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .stat-icon-webinar {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .tab-nav-webinar {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+    .tab-nav-webinar .nav-link {
+        color: var(--text-secondary);
+        border: none;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s ease;
+    }
+    .tab-nav-webinar .nav-link:hover {
+        color: var(--primary);
+    }
+    .tab-nav-webinar .nav-link.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: none;
+    }
+    .group-category-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    .category-small { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .category-medium { background: rgba(245,166,35,0.15); color: #f59e0b; }
+    .category-large { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .status-active { background: #22c55e; }
+    .status-restricted { background: #f59e0b; }
+    .status-error { background: #ef4444; }
+    .status-inactive { background: #9ca3af; }
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+        gap: 0.75rem;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+    .quick-action-btn .icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Facebook Connection Status -->
+{% if request.session.facebook_access_token %}
+<div class="alert alert-success d-flex align-items-center mb-3" role="alert">
+    <i class="bi bi-facebook me-2" style="font-size: 1.5rem;"></i>
+    <div class="flex-grow-1">
+        <strong>Facebook Connected!</strong> Logged in as {{ request.session.facebook_user_name|default:"You" }}
+    </div>
+    <a href="{% url 'webinar_facebook_settings' %}" class="btn btn-sm btn-outline-success me-2">
+        <i class="bi bi-gear"></i> Settings
+    </a>
+    <a href="{% url 'webinar_facebook_logout' %}" class="btn btn-sm btn-outline-danger">Disconnect</a>
+</div>
+{% else %}
+<div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+    <i class="bi bi-facebook me-2" style="font-size: 1.5rem;"></i>
+    <div class="flex-grow-1">
+        <strong>Facebook not connected!</strong> Configure your Facebook App to post to groups.
+    </div>
+    <a href="{% url 'webinar_facebook_settings' %}" class="btn btn-sm btn-warning">
+        <i class="bi bi-gear me-1"></i>Configure Facebook
+    </a>
+</div>
+{% endif %}
+
+<!-- Hero Section -->
+<div class="webinar-hero">
+    <h1><i class="bi bi-play-circle-fill me-2"></i>Decipher the Dating Code</h1>
+    <p>Promote your webinars across hundreds of Facebook groups and pages with ease.</p>
+</div>
+
+<!-- Main Stats Grid -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card-webinar">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon-webinar" style="background: rgba(102,126,234,0.15);">
+                    <i class="bi bi-collection-fill" style="color: #667eea;"></i>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">{{ stats.total_groups }} groups</span>
+            </div>
+            <div class="stat-value" style="color: #667eea; font-size: 2rem; font-weight: 700;">{{ stats.total_groups }}</div>
+            <div class="stat-label" style="color: var(--text-secondary);">Total Groups</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card-webinar">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon-webinar" style="background: rgba(245,166,35,0.15);">
+                    <i class="bi bi-people-fill" style="color: #f5a623;"></i>
+                </div>
+                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">{{ stats.total_reach|default:0|intcomma }} reach</span>
+            </div>
+            <div class="stat-value" style="color: #f5a623; font-size: 2rem; font-weight: 700;">{{ stats.total_reach|default:0|intcomma }}</div>
+            <div class="stat-label" style="color: var(--text-secondary);">Potential Reach</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card-webinar">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon-webinar" style="background: rgba(34,197,94,0.15);">
+                    <i class="bi bi-send-fill" style="color: #22c55e;"></i>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">{{ stats.posts_today }} today</span>
+            </div>
+            <div class="stat-value" style="color: #22c55e; font-size: 2rem; font-weight: 700;">{{ stats.posts_today }}</div>
+            <div class="stat-label" style="color: var(--text-secondary);">Posts Sent Today</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card-webinar">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon-webinar" style="background: rgba(239,68,68,0.15);">
+                    <i class="bi bi-calendar-event-fill" style="color: #ef4444;"></i>
+                </div>
+                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">{{ stats.scheduled_posts }} scheduled</span>
+            </div>
+            <div class="stat-value" style="color: #ef4444; font-size: 2rem; font-weight: 700;">{{ stats.scheduled_posts }}</div>
+            <div class="stat-label" style="color: var(--text-secondary);">Scheduled Posts</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-lightning-fill text-warning me-2"></i>Quick Actions</div>
+            </div>
+            <div class="p-3">
+                <div class="row g-3">
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'webinar_groups' %}" class="quick-action-btn">
+                            <div class="icon-wrap" style="background: rgba(102,126,234,0.15); color: #667eea;">
+                                <i class="bi bi-collection"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.875rem;">Manage Groups</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'webinar_accounts' %}" class="quick-action-btn">
+                            <div class="icon-wrap" style="background: rgba(34,197,94,0.15); color: #22c55e;">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.875rem;">Accounts</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'webinar_events' %}" class="quick-action-btn">
+                            <div class="icon-wrap" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.875rem;">Events</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'webinar_create_post' %}" class="quick-action-btn">
+                            <div class="icon-wrap" style="background: rgba(245,166,35,0.15); color: #f5a623;">
+                                <i class="bi bi-plus-square-dotted"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.875rem;">Create Post</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'webinar_scheduled' %}" class="quick-action-btn">
+                            <div class="icon-wrap" style="background: rgba(168,85,247,0.15); color: #a855f7;">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.875rem;">Scheduled</span>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <a href="{% url 'webinar_analytics' %}" class="quick-action-btn">
+                            <div class="icon-wrap" style="background: rgba(14,165,233,0.15); color: #0ea5e9;">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.875rem;">Analytics</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row g-3">
+    <!-- Group Categories -->
+    <div class="col-lg-4">
+        <div class="group-category-card">
+            <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill me-2" style="color: #667eea;"></i>Group Categories</h6>
+            
+            <div class="d-flex align-items-center justify-content-between mb-3 p-3" style="background: rgba(34,197,94,0.08); border-radius: 10px;">
+                <div>
+                    <div class="category-badge category-small">
+                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                        Small
+                    </div>
+                    <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">Below 10,000 members</div>
+                </div>
+                <div class="text-end">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #22c55e;">{{ stats.small_groups }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">groups</div>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center justify-content-between mb-3 p-3" style="background: rgba(245,166,35,0.08); border-radius: 10px;">
+                <div>
+                    <div class="category-badge category-medium">
+                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                        Medium
+                    </div>
+                    <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">10,000 - 100,000</div>
+                </div>
+                <div class="text-end">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">{{ stats.medium_groups }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">groups</div>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center justify-content-between p-3" style="background: rgba(239,68,68,0.08); border-radius: 10px;">
+                <div>
+                    <div class="category-badge category-large">
+                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                        Large
+                    </div>
+                    <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">Above 100,000</div>
+                </div>
+                <div class="text-end">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">{{ stats.large_groups }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">groups</div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <a href="{% url 'webinar_groups' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-arrow-right me-1"></i>View All Groups
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Events -->
+    <div class="col-lg-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-calendar-event-fill text-danger me-2"></i>Active Events</div>
+                <a href="{% url 'webinar_events' %}" class="btn btn-sm btn-gold">
+                    <i class="bi bi-plus-lg me-1"></i>New Event
+                </a>
+            </div>
+            <div class="p-3">
+                {% if active_events %}
+                    {% for event in active_events %}
+                        <div class="d-flex align-items-start gap-3 mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="activity-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" style="font-size: 0.9rem;">{{ event.title }}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    {% if event.event_date %}
+                                        {{ event.event_date|date:"M d, Y g:i A" }}
+                                    {% else %}
+                                        No date set
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-{% if event.status == 'active' %}success{% elif event.status == 'scheduled' %}warning{% else %}secondary{% endif %} bg-opacity-10 text-{% if event.status == 'active' %}success{% elif event.status == 'scheduled' %}warning{% else %}secondary{% endif %} mt-1" style="font-size: 0.7rem;">
+                                    {{ event.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4" style="color: var(--text-secondary);">
+                        <i class="bi bi-calendar-x" style="font-size: 2rem; opacity: 0.5;"></i>
+                        <p class="mb-0 mt-2" style="font-size: 0.875rem;">No active events yet</p>
+                        <a href="{% url 'webinar_events' %}" class="btn btn-sm btn-gold mt-2">Create Event</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-activity text-success me-2"></i>Recent Activity</div>
+                <a href="{% url 'webinar_analytics' %}" class="btn btn-sm btn-outline-secondary">
+                    View All
+                </a>
+            </div>
+            <div class="p-3">
+                {% if recent_logs %}
+                    {% for log in recent_logs %}
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: {% if log.status == 'success' %}rgba(34,197,94,0.15); color: #22c55e;{% elif log.status == 'failed' %}rgba(239,68,68,0.15); color: #ef4444;{% else %}rgba(156,163,175,0.15); color: #9ca3af;{% endif %};">
+                                {% if log.status == 'success' %}
+                                    <i class="bi bi-check-lg"></i>
+                                {% elif log.status == 'failed' %}
+                                    <i class="bi bi-x-lg"></i>
+                                {% else %}
+                                    <i class="bi bi-clock"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div style="font-size: 0.875rem; font-weight: 500;">
+                                    {% if log.group %}
+                                        {{ log.group.name }}
+                                    {% elif log.account %}
+                                        {{ log.account.name }}
+                                    {% else %}
+                                        Unknown destination
+                                    {% endif %}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                    {{ log.post.title|truncatechars:30 }}
+                                </div>
+                            </div>
+                            <span class="badge bg-{% if log.status == 'success' %}success{% elif log.status == 'failed' %}danger{% else %}secondary{% endif %} bg-opacity-10 text-{% if log.status == 'success' %}success{% elif log.status == 'failed' %}danger{% else %}secondary{% endif %}" style="font-size: 0.7rem;">
+                                {{ log.get_status_display }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4" style="color: var(--text-secondary);">
+                        <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
+                        <p class="mb-0 mt-2" style="font-size: 0.875rem;">No activity yet</p>
+                        <a href="{% url 'webinar_create_post' %}" class="btn btn-sm btn-gold mt-2">Create First Post</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

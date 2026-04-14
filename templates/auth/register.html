@@ -1,0 +1,191 @@
+{% comment %}register.html{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Register - Event Directory and Logistic</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    })();
+  </script>
+  <style>
+    :root {
+      --auth-bg: linear-gradient(135deg,#f8fafc 0%,#eef2ff 50%,#fff7ed 100%);
+      --card-bg: #ffffff;
+      --card-border: #e5e7eb;
+      --title: #111827;
+      --input-bg: #ffffff;
+      --input-border: #d1d5db;
+      --input-text: #111827;
+      --placeholder: #9ca3af;
+      --toggle-hidden: #9ca3af;
+      --toggle-visible: #4b5563;
+      --toggle-hover: #1f2937;
+    }
+
+    html[data-bs-theme="dark"] {
+      --auth-bg: linear-gradient(135deg,#0a0d14 0%,#0f172a 50%,#1a0a3e 100%);
+      --card-bg: rgba(255,255,255,.04);
+      --card-border: rgba(255,255,255,.08);
+      --title: #ffffff;
+      --input-bg: rgba(255,255,255,.06);
+      --input-border: rgba(255,255,255,.1);
+      --input-text: #ffffff;
+      --placeholder: #6b7280;
+      --toggle-hidden: #9ca3af;
+      --toggle-visible: #e5e7eb;
+      --toggle-hover: #f3f4f6;
+    }
+
+    body { font-family:'Inter',sans-serif; background:var(--auth-bg); min-height:100vh; display:flex; align-items:center; }
+    .auth-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:24px; padding:2.5rem; max-width:500px; width:100%; margin:auto; backdrop-filter: blur(8px); }
+    .auth-title { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:800; color:var(--title); }
+    .form-control,.form-select { background:var(--input-bg)!important; border:1px solid var(--input-border)!important; color:var(--input-text)!important; padding:.7rem 1rem!important; border-radius:10px!important; }
+    .form-control:focus,.form-select:focus { border-color:#f5a623!important; box-shadow:0 0 0 3px rgba(245,166,35,.15)!important; }
+    .form-control::placeholder { color:var(--placeholder)!important; }
+    .btn-gold { background:linear-gradient(135deg,#f5a623,#c8851b); color:#000; font-weight:700; border:none; border-radius:10px; padding:.8rem; }
+    .btn-gold:hover { filter:brightness(1.1); color:#000; }
+    .form-label { font-size:.75rem; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; }
+    .pw-strength { height:4px; border-radius:2px; margin-top:.5rem; transition:all .3s; }
+
+    .password-field { position:relative; }
+    .password-field .form-control { padding-right:44px!important; }
+    .password-toggle-icon {
+      position:absolute;
+      top:50%;
+      right:12px;
+      transform:translateY(-50%);
+      border:none;
+      background:transparent;
+      padding:0;
+      margin:0;
+      color:var(--toggle-hidden);
+      opacity:.95;
+      line-height:1;
+      transition:color .2s ease, opacity .2s ease;
+      cursor:pointer;
+      z-index:3;
+    }
+    .password-toggle-icon i { font-size:18px; line-height:1; }
+    .password-toggle-icon:hover { color:var(--toggle-hover); opacity:1; }
+    .password-toggle-icon.is-visible { color:var(--toggle-visible); }
+    .password-toggle-icon.is-visible:hover { color:var(--toggle-hover); }
+  </style>
+</head>
+<body>
+<div class="container py-5">
+  <div class="auth-card">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">Event Directory and Logistic</div>
+      <div class="auth-title">Create Account</div>
+      <p class="text-muted small mt-1">Join Event Directory's premier events and matchmaking network</p>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger py-2 small">
+      {% for field in form %} {% for err in field.errors %}<div>{{ err }}</div>{% endfor %} {% endfor %}
+      {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label" for="id_first_name">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" for="id_last_name">Last Name</label>
+          {{ form.last_name }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_email">Email Address</label>
+          {{ form.email }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" for="id_password">Password</label>
+          <div class="password-field">
+            {{ form.password }}
+            <button type="button" class="password-toggle-icon" data-target="id_password" aria-label="Show password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <div class="pw-strength" id="pwStrength" style="background:#374151;"></div>
+          <div class="small text-muted mt-1" id="pwLabel">Minimum 8 characters</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" for="id_password_confirm">Confirm Password</label>
+          {{ form.confirm_password }}
+        </div>
+        <div class="col-12">
+          <div class="p-3 rounded" style="background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.1);">
+            <div class="d-flex gap-2 align-items-start">
+              <i class="bi bi-shield-check-fill text-warning mt-1"></i>
+              <div class="small text-muted">
+                After registering, a 6-digit OTP will be sent to verify your email.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+            <label class="form-check-label small text-muted" for="agreeTerms">
+              I agree to the Terms of Service and Privacy Policy
+            </label>
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-gold w-100 mt-2">
+            <i class="bi bi-person-plus-fill me-2"></i>Create Account and Verify Email
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div class="text-center mt-4">
+      <span class="text-muted small">Already have an account? </span>
+      <a href="{% url 'login' %}" style="color:#f5a623;font-weight:600;font-size:.875rem;text-decoration:none;">Sign In</a>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function togglePassword(button) {
+    const targetId = button.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    const icon = button.querySelector('i');
+    if (icon) icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+    button.classList.toggle('is-visible', !showing);
+    button.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  }
+
+  document.querySelectorAll('.password-toggle-icon').forEach(btn => {
+    btn.addEventListener('click', () => togglePassword(btn));
+  });
+
+  document.querySelector('[name="password"]').addEventListener('input', function() {
+    const pw = this.value, bar = document.getElementById('pwStrength'), lbl = document.getElementById('pwLabel');
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const colors = ['#374151','#ef4444','#f59e0b','#10b981','#34d399'];
+    const labels = ['','Weak','Fair','Good','Strong'];
+    bar.style.background = colors[score];
+    bar.style.width = (score*25)+'%';
+    lbl.textContent = labels[score] || 'Minimum 8 characters';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends "allauth/layouts/entrance.html" %}
+{% load i18n %}
+
+{% block head_title %}
+    {% trans "Sign Up" %}
+{% endblock head_title %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h2 class="auth-title">
+    {% blocktrans with provider.name as provider %}Sign up with {{ provider }}{% endblocktrans %}
+  </h2>
+</div>
+
+<p class="text-center text-muted mb-4">
+  {% blocktrans %}You are about to use your Google account to sign up.{% endblocktrans %}
+</p>
+
+<form method="post" action="{% url 'socialaccount_signup' %}">
+  {% csrf_token %}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-gold">
+      <i class="bi bi-person-plus me-2"></i>{% trans "Create Account" %}
+    </button>
+  </div>
+</form>
+{% endblock %}

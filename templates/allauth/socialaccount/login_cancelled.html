@@ -1,0 +1,18 @@
+{% extends "allauth/layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h2 class="auth-title">{% trans "Login Cancelled" %}</h2>
+</div>
+
+<p class="text-center text-muted mb-4">
+  {% blocktrans %}You decided to cancel logging in to our site.{% endblocktrans %}
+</p>
+
+<div class="d-grid gap-2">
+  <a href="{{ login_url }}" class="btn btn-gold">
+    {% trans "Try Again" %}
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}Locations – Event Directory and Logistic{% endblock %}
+{% block page_title %}Locations Management{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h5 class="mb-1" style="color:#0f172a;font-weight:600;">Event Directory and Logistic Locations</h5>
+    <p class="text-muted small mb-0">Manage apartment complexes, venues & hotspots</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'import_data' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-upload me-1"></i>Import</a>
+    <a href="{% url 'location_add' %}" class="btn btn-gold btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Location</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="data-card mb-4">
+  <div class="p-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <input type="text" name="q" class="form-control form-control-sm search-input" placeholder="Search name, city, email..." value="{{ filters.q }}">
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="type" class="form-select form-select-sm">
+          <option value="">All Types</option>
+          {% for val,label in type_choices %}
+          <option value="{{ val }}" {% if filters.type == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
+          <option value="pending" {% if filters.status == 'pending' %}selected{% endif %}>Pending</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="city" class="form-select form-select-sm">
+          <option value="">All Cities</option>
+          {% for c in cities %}<option value="{{ c }}" {% if filters.city == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel"></i> Filter</button>
+        <a href="{% url 'location_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-lg"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Results count -->
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <small class="text-muted">{{ locations.paginator.count }} location(s) found</small>
+  <div class="btn-group btn-group-sm" id="viewToggle">
+    <button class="btn btn-outline-secondary active" id="tblBtn" onclick="setView('table')"><i class="bi bi-list-ul"></i></button>
+    <button class="btn btn-outline-secondary" id="gridBtn" onclick="setView('grid')"><i class="bi bi-grid-3x3-gap"></i></button>
+  </div>
+</div>
+
+<!-- Table View -->
+<div class="data-card" id="tableView">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Name</th><th>Type</th><th>City / County</th><th>Contact</th><th>Phone / Email</th><th>Social</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loc in locations %}
+        <tr>
+          <td>
+            <div class="fw-semibold" style="color:#0f172a;">{{ loc.name }}</div>
+            <div class="text-muted small">{{ loc.address|truncatechars:30 }}</div>
+          </td>
+          <td><span class="badge rounded-pill" style="background:rgba(124,58,237,.15);color:#a78bfa;">{{ loc.get_type_display }}</span></td>
+          <td>
+            <div>{{ loc.city }}</div>
+            {% if loc.county %}<div class="text-muted small">{{ loc.county }} Co.</div>{% endif %}
+          </td>
+          <td>
+            {% if loc.contact_name %}<div class="small">{{ loc.contact_name }}</div>{% endif %}
+            {% if loc.contact_title %}<div class="text-muted small">{{ loc.contact_title }}</div>{% endif %}
+          </td>
+          <td>
+            {% if loc.phone %}<div class="contact-info-item phone"><i class="bi bi-telephone"></i> {{ loc.phone }}</div>{% endif %}
+            {% if loc.email %}<div class="contact-info-item email"><i class="bi bi-envelope"></i> {{ loc.email }}</div>{% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              {% if loc.facebook %}<a href="{{ loc.facebook }}" target="_blank" class="btn btn-xs btn-sm btn-outline-primary py-0 px-1" title="Facebook"><i class="bi bi-facebook"></i></a>{% endif %}
+              {% if loc.instagram %}<a href="{{ loc.instagram }}" target="_blank" class="btn btn-xs btn-sm btn-outline-danger py-0 px-1" title="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
+              {% if loc.twitter %}<a href="{{ loc.twitter }}" target="_blank" class="btn btn-xs btn-sm btn-outline-info py-0 px-1" title="Twitter"><i class="bi bi-twitter-x"></i></a>{% endif %}
+              {% if loc.social_link %}<a href="{{ loc.social_link }}" target="_blank" class="btn btn-xs btn-sm btn-outline-secondary py-0 px-1" title="Link"><i class="bi bi-link-45deg"></i></a>{% endif %}
+            </div>
+          </td>
+          <td><span class="badge badge-{{ loc.status }} rounded-pill">{{ loc.get_status_display }}</span></td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'location_detail' loc.pk %}" class="btn btn-xs btn-sm btn-outline-info py-0 px-2" style="font-size:.7rem;" title="View"><i class="bi bi-eye"></i></a>
+              <a href="{% url 'location_edit' loc.pk %}" class="btn btn-xs btn-sm btn-outline-warning py-0 px-2" style="font-size:.7rem;" title="Edit"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'location_delete' loc.pk %}" class="btn btn-xs btn-sm btn-outline-danger py-0 px-2" style="font-size:.7rem;" title="Delete"><i class="bi bi-trash"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-geo-alt"></i></div>
+            <div class="empty-state-title">No Locations Found</div>
+            <div class="empty-state-text">Start by adding your first location to the system.</div>
+            <a href="{% url 'location_add' %}" class="btn btn-gold"><i class="bi bi-plus-lg me-2"></i>Add Location</a>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Grid View (hidden by default) -->
+<div id="gridView" style="display:none;">
+  <div class="row g-3">
+    {% for loc in locations %}
+    <div class="col-sm-6 col-xl-4">
+      <div class="data-card h-100 p-3">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div>
+            <div class="fw-bold" style="color:#0f172a;">{{ loc.name }}</div>
+            <div class="small text-warning">{{ loc.city }}{% if loc.county %}, {{ loc.county }} Co.{% endif %}</div>
+          </div>
+          <span class="badge badge-{{ loc.status }} rounded-pill">{{ loc.get_status_display }}</span>
+        </div>
+        {% if loc.address %}<div class="small text-muted mb-1"><i class="bi bi-map"></i> {{ loc.address }}</div>{% endif %}
+        {% if loc.phone %}<div class="small text-muted mb-1"><i class="bi bi-telephone"></i> {{ loc.phone }}</div>{% endif %}
+        {% if loc.email %}<div class="small text-primary mb-1"><i class="bi bi-envelope"></i> {{ loc.email }}</div>{% endif %}
+        {% if loc.facebook or loc.instagram or loc.twitter or loc.social_link %}
+        <div class="d-flex gap-1 mb-2">
+          {% if loc.facebook %}<a href="{{ loc.facebook }}" target="_blank" class="btn btn-xs btn-sm btn-outline-primary py-0 px-1" title="Facebook"><i class="bi bi-facebook"></i></a>{% endif %}
+          {% if loc.instagram %}<a href="{{ loc.instagram }}" target="_blank" class="btn btn-xs btn-sm btn-outline-danger py-0 px-1" title="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
+          {% if loc.twitter %}<a href="{{ loc.twitter }}" target="_blank" class="btn btn-xs btn-sm btn-outline-info py-0 px-1" title="Twitter"><i class="bi bi-twitter-x"></i></a>{% endif %}
+          {% if loc.social_link %}<a href="{{ loc.social_link }}" target="_blank" class="btn btn-xs btn-sm btn-outline-secondary py-0 px-1" title="Link"><i class="bi bi-link-45deg"></i></a>{% endif %}
+        </div>
+        {% endif %}
+        <div class="d-flex align-items-center justify-content-between mt-auto pt-2" style="border-top:1px solid rgba(255,255,255,.05);">
+          <span class="badge rounded-pill" style="background:rgba(124,58,237,.15);color:#a78bfa;font-size:.7rem;">{{ loc.get_type_display }}</span>
+          <div class="d-flex gap-1">
+            <a href="{% url 'location_edit' loc.pk %}" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:.7rem;"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'location_delete' loc.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.7rem;"><i class="bi bi-trash"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if locations.has_other_pages %}
+<nav aria-label="pagination" class="mt-4">
+  <ul class="pagination justify-content-center">
+    {% if locations.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+      <li class="page-item"><a class="page-link" href="?page={{ locations.previous_page_number }}">Previous</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    {% for num in locations.paginator.page_range %}
+      {% if locations.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% elif num > locations.number|add:'-3' and num < locations.number|add:'3' %}
+        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if locations.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ locations.next_page_number }}">Next</a></li>
+      <li class="page-item"><a class="page-link" href="?page={{ locations.paginator.num_pages }}">Last</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setView(v) {
+  document.getElementById('tableView').style.display = v==='table'?'':'none';
+  document.getElementById('gridView').style.display = v==='grid'?'':'none';
+  document.getElementById('tblBtn').classList.toggle('active', v==='table');
+  document.getElementById('gridBtn').classList.toggle('active', v==='grid');
+}
+</script>
+{% endblock %}

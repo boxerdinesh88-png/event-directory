@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Accounts – Webinar System{% endblock %}
+{% block page_title %}<i class="bi bi-person-badge-fill me-2" style="color: #22c55e;"></i>Accounts & Pages{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <!-- Add Account Section -->
+    <div class="col-lg-4">
+        <div class="data-card h-100">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-plus-circle text-success me-2"></i>Add Account</div>
+            </div>
+            <div class="p-3">
+                <form method="post" action="{% url 'webinar_import_accounts' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Account Name *</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g., Dating Tips Fan Page" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Account Type *</label>
+                        <select name="account_type" class="form-select" required>
+                            {% for val, label in account_types %}
+                                <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Page/Group URL</label>
+                        <input type="url" name="url" class="form-control" placeholder="https://facebook.com/...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Page ID</label>
+                        <input type="text" name="page_id" class="form-control" placeholder="Facebook Page or Group ID">
+                        <div class="form-text">Required for API posting</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Access Token</label>
+                        <input type="password" name="access_token" class="form-control" placeholder="Facebook Access Token">
+                        <div class="form-text">Securely stored for automation</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tags</label>
+                        <input type="text" name="tags" class="form-control" placeholder="e.g., personal, business, main">
+                        <div class="form-text">Comma-separated: personal, business, niche, main, backup</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-plus-lg me-2"></i>Add Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Accounts List -->
+    <div class="col-lg-8">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title">
+                    <i class="bi bi-list-ul me-2" style="color: #22c55e;"></i>All Accounts
+                    <span class="badge bg-success bg-opacity-10 text-success ms-2" style="font-size: 0.8rem;">{{ accounts.count }}</span>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="p-3 border-bottom">
+                <form method="get" class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" name="q" class="form-control" placeholder="Search accounts..." value="{{ filters.q }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            {% for val, label in account_types %}
+                                <option value="{{ val }}" {% if filters.type == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            {% for val, label in status_choices %}
+                                <option value="{{ val }}" {% if filters.status == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i>Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Accounts Table -->
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Account Name</th>
+                            <th>Type</th>
+                            <th>Page ID</th>
+                            <th>Tags</th>
+                            <th>Token</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ account.name }}</div>
+                                    {% if account.url %}
+                                        <a href="{{ account.url }}" target="_blank" class="text-decoration-none" style="font-size: 0.75rem;">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.account_type == 'page' %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            <i class="bi bi-flag me-1"></i>Page
+                                        </span>
+                                    {% elif account.account_type == 'group' %}
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            <i class="bi bi-people me-1"></i>Group
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                            <i class="bi bi-person me-1"></i>Profile
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.page_id %}
+                                        <code style="font-size: 0.75rem;">{{ account.page_id|truncatechars:15 }}</code>
+                                    {% else %}
+                                        <span style="color: var(--text-secondary);">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.tags %}
+                                        {% for tag in account.tags.split|slice:":2" %}
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary me-1" style="font-size: 0.65rem;">{{ tag }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span style="color: var(--text-secondary);">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if account.access_token %}
+                                        <span class="text-success"><i class="bi bi-check-circle-fill"></i> Set</span>
+                                    {% else %}
+                                        <span style="color: var(--text-secondary);">Not set</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="d-flex align-items-center gap-1">
+                                        <span class="status-dot status-{{ account.status }}"></span>
+                                        {{ account.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'webinar_delete_account' account.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this account?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4" style="color: var(--text-secondary);">
+                                    <i class="bi bi-person-badge" style="font-size: 2rem; opacity: 0.5;"></i>
+                                    <p class="mb-0 mt-2">No accounts added yet. Add your Facebook Pages and Groups above.</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

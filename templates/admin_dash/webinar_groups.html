@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Groups – Webinar System{% endblock %}
+{% block page_title %}<i class="bi bi-collection-fill me-2" style="color: #667eea;"></i>Facebook Groups{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <!-- Import Section -->
+    <div class="col-lg-4">
+        <div class="data-card h-100">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-upload text-success me-2"></i>Import Groups</div>
+            </div>
+            <div class="p-3">
+                <form method="post" enctype="multipart/form-data" action="{% url 'webinar_import_groups' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Upload CSV or Excel</label>
+                        <input type="file" name="file" class="form-control" accept=".csv,.xlsx,.xls" required>
+                        <div class="form-text">Columns: name, url, members, niche, tags</div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-upload me-2"></i>Import Groups
+                    </button>
+                </form>
+                
+                <hr class="my-4">
+                
+                <form method="post" action="{% url 'webinar_import_groups' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="manual_add" value="1">
+                    <div class="data-card-title mb-3"><i class="bi bi-plus-circle text-primary me-2"></i>Add Manually</div>
+                    
+                    <div class="mb-2">
+                        <input type="text" name="name" class="form-control" placeholder="Group Name *" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="url" name="url" class="form-control" placeholder="Group URL">
+                    </div>
+                    <div class="mb-2">
+                        <input type="number" name="member_count" class="form-control" placeholder="Member Count" min="0">
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" name="niche" class="form-control" placeholder="Niche (e.g., Dating, Relationships)">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="tags" class="form-control" placeholder="Tags (comma-separated)">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-lg me-2"></i>Add Group
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Groups List -->
+    <div class="col-lg-8">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title">
+                    <i class="bi bi-list-ul me-2" style="color: #667eea;"></i>All Groups
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-2" style="font-size: 0.8rem;">{{ groups.count }}</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'webinar_export_report' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download me-1"></i>Export
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="p-3 border-bottom">
+                <form method="get" class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" name="q" class="form-control" placeholder="Search groups..." value="{{ filters.q }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="size" class="form-select">
+                            <option value="">All Sizes</option>
+                            {% for val, label in size_categories %}
+                                <option value="{{ val }}" {% if filters.size == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            {% for val, label in status_choices %}
+                                <option value="{{ val }}" {% if filters.status == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="engagement" class="form-select">
+                            <option value="">All Engagement</option>
+                            {% for val, label in engagement_choices %}
+                                <option value="{{ val }}" {% if filters.engagement == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i>Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Groups Table -->
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Size</th>
+                            <th>Members</th>
+                            <th>Engagement</th>
+                            <th>Status</th>
+                            <th>Niche</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ group.name }}</div>
+                                    {% if group.url %}
+                                        <a href="{{ group.url }}" target="_blank" class="text-decoration-none" style="font-size: 0.75rem;">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if group.size_category == 'small' %}
+                                        <span class="badge category-small">Small</span>
+                                    {% elif group.size_category == 'medium' %}
+                                        <span class="badge category-medium">Medium</span>
+                                    {% else %}
+                                        <span class="badge category-large">Large</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ group.member_count|default:"0"|intcomma }}</td>
+                                <td>
+                                    {% if group.engagement == 'high' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success">High</span>
+                                    {% elif group.engagement == 'medium' %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning">Medium</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Low</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="d-flex align-items-center gap-1">
+                                        <span class="status-dot status-{{ group.status }}"></span>
+                                        {{ group.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ group.niche|default:"-" }}</td>
+                                <td>
+                                    <a href="{% url 'webinar_delete_group' group.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this group?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4" style="color: var(--text-secondary);">
+                                    <i class="bi bi-collection" style="font-size: 2rem; opacity: 0.5;"></i>
+                                    <p class="mb-0 mt-2">No groups found. Import or add groups to get started.</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign In - Event Directory and Logistic</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    })();
+  </script>
+  <style>
+    :root {
+      --auth-bg: linear-gradient(135deg,#f8fafc 0%,#eef2ff 50%,#fff7ed 100%);
+      --card-bg: #ffffff;
+      --card-border: #e5e7eb;
+      --title: #111827;
+      --input-bg: #ffffff;
+      --input-border: #d1d5db;
+      --input-text: #111827;
+      --placeholder: #9ca3af;
+      --divider-text: #6b7280;
+      --divider-line: #e5e7eb;
+      --otp-bg: #fff7ed;
+      --otp-border: #fdba74;
+      --otp-text: #c2410c;
+      --toggle-hidden: #9ca3af;
+      --toggle-visible: #4b5563;
+      --toggle-hover: #1f2937;
+    }
+
+    html[data-bs-theme="dark"] {
+      --auth-bg: linear-gradient(135deg,#0a0d14 0%,#0f172a 50%,#1a0a3e 100%);
+      --card-bg: rgba(255,255,255,.04);
+      --card-border: rgba(255,255,255,.08);
+      --title: #ffffff;
+      --input-bg: rgba(255,255,255,.06);
+      --input-border: rgba(255,255,255,.1);
+      --input-text: #ffffff;
+      --placeholder: #6b7280;
+      --divider-text: #4b5563;
+      --divider-line: rgba(255,255,255,.08);
+      --otp-bg: rgba(245,166,35,.12);
+      --otp-border: rgba(245,166,35,.2);
+      --otp-text: #f5a623;
+      --toggle-hidden: #9ca3af;
+      --toggle-visible: #e5e7eb;
+      --toggle-hover: #f3f4f6;
+    }
+
+    body { font-family:'Inter',sans-serif; background: var(--auth-bg); min-height:100vh; display:flex; align-items:center; }
+    .auth-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:24px; padding:2.5rem; max-width:440px; width:100%; margin:auto; backdrop-filter: blur(8px); }
+    .auth-title { font-family:'Playfair Display',serif; font-size:2rem; font-weight:800; color:var(--title); }
+    .form-control { background:var(--input-bg)!important; border:1px solid var(--input-border)!important; color:var(--input-text)!important; padding:.75rem 1rem!important; border-radius:10px!important; }
+    .form-control:focus { border-color:#f5a623!important; box-shadow:0 0 0 3px rgba(245,166,35,.15)!important; }
+    .form-control::placeholder { color:var(--placeholder)!important; }
+    .btn-gold { background:linear-gradient(135deg,#f5a623,#c8851b); color:#000; font-weight:700; border:none; border-radius:10px; padding:.8rem; }
+    .btn-gold:hover { filter:brightness(1.1); color:#000; }
+    .divider { position:relative; text-align:center; color:var(--divider-text); font-size:.8rem; margin:1.25rem 0; }
+    .divider::before,.divider::after { content:''; position:absolute; top:50%; width:44%; height:1px; background:var(--divider-line); }
+    .divider::before { left:0; } .divider::after { right:0; }
+    .otp-btn { background:var(--otp-bg); border:1px solid var(--otp-border); color:var(--otp-text); font-size:.8rem; border-radius:8px; padding:.4rem .75rem; cursor:pointer; transition:all .2s; }
+    .otp-btn:hover { filter:brightness(1.05); }
+
+    .password-field { position:relative; }
+    .password-field .form-control { padding-right:44px!important; }
+    .password-toggle-icon {
+      position:absolute;
+      top:50%;
+      right:12px;
+      transform:translateY(-50%);
+      border:none;
+      background:transparent;
+      padding:0;
+      margin:0;
+      color:var(--toggle-hidden);
+      opacity:.95;
+      line-height:1;
+      transition:color .2s ease, opacity .2s ease;
+      cursor:pointer;
+      z-index:3;
+    }
+    .password-toggle-icon i { font-size:18px; line-height:1; }
+    .password-toggle-icon:hover { color:var(--toggle-hover); opacity:1; }
+    .password-toggle-icon.is-visible { color:var(--toggle-visible); }
+    .password-toggle-icon.is-visible:hover { color:var(--toggle-hover); }
+  </style>
+</head>
+<body>
+<div class="container py-5">
+  <div class="auth-card">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">Event Directory and Logistic</div>
+      <div class="auth-title">Welcome Back</div>
+      <p class="text-muted small mt-1">Sign in to Your Event Directory and Logistic Dashboard</p>
+    </div>
+
+    {% if messages %}
+      {% for m in messages %}
+      <div class="alert alert-danger alert-sm py-2 small">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <ul class="nav nav-pills nav-fill mb-4" id="loginTabs">
+      <li class="nav-item">
+        <button type="button" class="nav-link active" id="pw-tab" onclick="switchTab('password')">
+          <i class="bi bi-lock-fill me-1"></i>Password
+        </button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" id="otp-tab" onclick="switchTab('otp')">
+          <i class="bi bi-shield-lock-fill me-1"></i>Email OTP
+        </button>
+      </li>
+    </ul>
+
+    <form method="POST" id="password-form">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label text-muted small fw-semibold">EMAIL ADDRESS</label>
+        <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+      </div>
+      <div class="mb-4">
+        <label class="form-label text-muted small fw-semibold">PASSWORD</label>
+        <div class="password-field">
+          <input id="loginPassword" type="password" name="password" class="form-control" placeholder="********" required>
+          <button type="button" class="password-toggle-icon" data-target="loginPassword" aria-label="Show password">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-gold w-100 mb-3">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </button>
+    </form>
+
+    <div id="otp-form" style="display:none;">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <div class="mb-3">
+        <label class="form-label text-muted small fw-semibold">EMAIL ADDRESS</label>
+        <div class="input-group">
+          <input type="email" id="otpEmail" class="form-control" placeholder="you@example.com">
+          <button type="button" id="sendOtpBtn" class="otp-btn ms-2" onclick="sendOTP()">Send OTP</button>
+        </div>
+      </div>
+      <div id="otpCodeDiv" style="display:none;" class="mb-4">
+        <label class="form-label text-muted small fw-semibold">ENTER OTP CODE</label>
+        <input type="text" id="otpCode" class="form-control text-center" placeholder="123456" maxlength="6" style="letter-spacing:8px;font-size:1.5rem;font-weight:700;">
+        <div class="text-center mt-2">
+          <small class="text-muted">Code expires in <span id="countdown">5:00</span></small>
+          <button type="button" class="btn btn-link btn-sm text-warning p-0 ms-2" id="resendBtn" onclick="sendOTP()">Resend</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-gold w-100 mb-3" onclick="verifyOTPLogin()">
+        <i class="bi bi-shield-check me-2"></i>Verify & Sign In
+      </button>
+    </div>
+
+    <div class="divider">or</div>
+    {% load socialaccount %}
+    <div class="d-grid gap-2 mb-3">
+      <a href="{% provider_login_url 'google' process='login' %}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" style="border-radius:10px;padding:.8rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <span style="font-weight:600;">Continue with Google</span>
+      </a>
+    </div>
+    <div class="text-center">
+      <span class="text-muted small">Don't have an account? </span>
+      <a href="{% url 'register' %}" style="color:#f5a623;font-weight:600;font-size:.875rem;text-decoration:none;">Create Account</a>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function togglePassword(button) {
+    const targetId = button.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    const icon = button.querySelector('i');
+    if (icon) icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+    button.classList.toggle('is-visible', !showing);
+    button.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  }
+
+  document.querySelectorAll('.password-toggle-icon').forEach(btn => {
+    btn.addEventListener('click', () => togglePassword(btn));
+  });
+
+  function switchTab(mode) {
+    document.getElementById('password-form').style.display = mode==='password'?'':'none';
+    document.getElementById('otp-form').style.display = mode==='otp'?'':'none';
+    document.getElementById('pw-tab').classList.toggle('active', mode==='password');
+    document.getElementById('otp-tab').classList.toggle('active', mode==='otp');
+  }
+
+  let timerInterval;
+  let otpSentTime = 0;
+  function sendOTP() {
+    const email = document.getElementById('otpEmail').value;
+    if (!email) { showToast('Please enter your email first.', 'warning'); return; }
+    const btn = document.getElementById('sendOtpBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    if(resendBtn) resendBtn.disabled = true;
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+
+    fetch('{% url "send_otp" %}', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': csrfToken},
+      body: `email=${encodeURIComponent(email)}&purpose=login`
+    }).then(r => {
+      if (!r.ok) {
+        return r.text().then(t => { throw new Error('Server error: ' + r.status); });
+      }
+      return r.json();
+    }).then(d=>{
+      btn.disabled = false;
+      btn.innerHTML = 'Send OTP';
+      if(resendBtn) resendBtn.disabled = false;
+      if (d.success) {
+        document.getElementById('otpCodeDiv').style.display='';
+        otpSentTime = Date.now();
+        startTimer(300);
+        showToast('Verification code sent to ' + email, 'success');
+      } else { showToast(d.error || 'Failed to send verification code.', 'error'); }
+    }).catch(e=>{
+      btn.disabled = false;
+      btn.innerHTML = 'Send OTP';
+      if(resendBtn) resendBtn.disabled = false;
+      showToast('Unable to send code. Please try again.', 'error');
+    });
+  }
+
+  function startTimer(seconds) {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+      const elapsed = Math.floor((Date.now() - otpSentTime) / 1000);
+      const remaining = Math.max(0, seconds - elapsed);
+      const m = Math.floor(remaining/60), s = remaining%60;
+      document.getElementById('countdown').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      if (remaining<=0) { clearInterval(timerInterval); document.getElementById('otpCodeDiv').style.display='none'; }
+    }, 1000);
+  }
+
+  function verifyOTPLogin() {
+    const email = document.getElementById('otpEmail').value;
+    const code = document.getElementById('otpCode').value;
+    if (!code || code.length!==6) { showToast('Please enter the 6-digit verification code.', 'warning'); return; }
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+    const form = document.createElement('form');
+    form.method='POST'; form.action='{% url "verify_otp" %}?purpose=login&email='+encodeURIComponent(email);
+    form.innerHTML = `<input name="csrfmiddlewaretoken" value="${csrfToken}"><input name="email" value="${email}"><input name="otp_code" value="${code}"><input name="purpose" value="login">`;
+    document.body.appendChild(form); form.submit();
+  }
+</script>
+</body>
+</html>

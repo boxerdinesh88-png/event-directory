@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Facebook Settings – Webinar System{% endblock %}
+{% block page_title %}<i class="bi bi-facebook me-2" style="color: #1877f2;"></i>Facebook Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        
+        {% if not ngrok_url %}
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle me-2"></i>Step 1: Start ngrok first!</h5>
+            <ol class="mb-0 mt-2">
+                <li>Open terminal: <code>ngrok http 8000</code></li>
+                <li>Copy the <strong>Forwarding</strong> URL (e.g., <code>https://abc123.ngrok-free.app</code>)</li>
+                <li>Paste it below</li>
+            </ol>
+        </div>
+        {% endif %}
+        
+        <div class="data-card mb-4">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-key me-2" style="color: #1877f2;"></i>Facebook API Credentials</div>
+            </div>
+            <div class="p-4">
+                <form method="post" action="{% url 'webinar_save_facebook_settings' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Step 1: Your Ngrok URL *</label>
+                        <input type="url" name="ngrok_url" class="form-control form-control-lg" 
+                               placeholder="https://fleeting-keegan-unincriminated.ngrok-free.dev"
+                               value="{{ ngrok_url }}" required>
+                        <div class="form-text">Copy ngrok Forwarding URL here</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Step 2: Your Redirect URI</label>
+                        <div class="alert alert-warning">
+                            <strong>COPY THIS URL AND ADD TO FACEBOOK CONSOLE:</strong>
+                            <div class="input-group mt-2">
+                                <input type="text" class="form-control fw-bold text-danger" 
+                                       id="redirectUri" value="{{ redirect_uri }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyRedirectUri()">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            <small class="text-danger">NO trailing slash at the end!</small>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Step 3: Facebook App ID *</label>
+                                <input type="text" name="facebook_app_id" class="form-control" 
+                                       placeholder="824209346621581" 
+                                       value="{{ facebook_app_id|default:'824209346621581' }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Step 4: Facebook App Secret *</label>
+                                <input type="password" name="facebook_app_secret" class="form-control" 
+                                       placeholder="xxxxxxxxxxxxxxxx"
+                                       value="{{ facebook_app_secret }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-save me-2"></i>Save All Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        {% if ngrok_url and facebook_app_id and facebook_app_secret %}
+        <div class="card border-success mb-4">
+            <div class="card-body text-center py-4">
+                <h4 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>All Settings Saved!</h4>
+                <p class="lead">Click the button below to connect with Facebook:</p>
+                <a href="{% url 'webinar_facebook_login' %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-facebook me-2"></i>Connect Facebook Now
+                </a>
+                
+                <hr>
+                <div class="mt-3 text-start">
+                    <strong>Your OAuth URL:</strong>
+                    <code class="d-block mt-2 p-3 bg-dark text-light rounded small" style="word-break: break-all;">
+https://www.facebook.com/v18.0/dialog/oauth?client_id={{ facebook_app_id }}&redirect_uri={{ redirect_uri }}&scope=email,public_profile&response_type=code
+                    </code>
+                </div>
+                
+                <div class="alert alert-info mt-3 text-start">
+                    <strong>Checklist before clicking:</strong>
+                    <ol class="mb-0 mt-2">
+                        <li>Redirect URI added in Facebook Console</li>
+                        <li>App is in Live mode OR you're added as tester</li>
+                        <li>Facebook Login product is enabled</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Fill all fields above to enable Facebook connection.
+        </div>
+        {% endif %}
+        
+        <div class="data-card">
+            <div class="data-card-header bg-danger text-white">
+                <div class="data-card-title"><i class="bi bi-exclamation-octagon me-2"></i>FIX "App Isn't Available" Error</div>
+            </div>
+            <div class="p-4">
+                <div class="alert alert-danger">
+                    <strong>"This app isn't available" or "This app needs at least one supported permission"</strong>
+                    <p class="mb-0 mt-2">This means your app is in <strong>Development Mode</strong> and you're not authorized to use it.</p>
+                </div>
+                
+                <ol>
+                    <li class="mb-3">
+                        <strong>Go to Facebook Developer Console:</strong>
+                        <a href="https://developers.facebook.com/apps/" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                            Open Console
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Select your app (App ID: 824209346621581)</strong>
+                    </li>
+                    <li class="mb-3">
+                        <strong>OPTION A - Make App Public (Live Mode):</strong>
+                        <ul>
+                            <li>Go to Settings → Basic</li>
+                            <li>Click "Make Public" toggle at top right</li>
+                            <li>Confirm the changes</li>
+                        </ul>
+                    </li>
+                    <li class="mb-3">
+                        <strong>OPTION B - Add yourself as Tester:</strong>
+                        <ul>
+                            <li>Go to Roles → Testers</li>
+                            <li>Click "Add Testers"</li>
+                            <li>Search and add your Facebook account</li>
+                            <li>Accept the invitation from your Facebook account</li>
+                        </ul>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Add Redirect URI in Facebook Login Settings:</strong>
+                        <div class="input-group mt-2">
+                            <input type="text" class="form-control fw-bold text-danger" readonly 
+                                   value="{{ redirect_uri }}">
+                            <button class="btn btn-outline-danger" type="button" onclick="copyRedirectUri()">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Save and try again!</strong>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-lightning me-2 text-success"></i>Quick Setup</div>
+            </div>
+            <div class="p-4">
+                <h6>Your Configuration:</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>App ID:</strong></td>
+                        <td><code>824209346621581</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Redirect URI:</strong></td>
+                        <td><code class="small">{{ redirect_uri }}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Scope:</strong></td>
+                        <td><code>email,public_profile</code></td>
+                    </tr>
+                </table>
+                
+                <hr>
+                
+                <h6>Common Errors:</h6>
+                <dl class="mt-3">
+                    <dt class="text-danger">"App isn't available"</dt>
+                    <dd class="small">App is in Development mode. Make it Public OR add yourself as tester.</dd>
+                    
+                    <dt class="text-danger">redirect_uri_mismatch</dt>
+                    <dd class="small">URL in Facebook Console doesn't match. Copy the URL above exactly.</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyRedirectUri() {
+    const text = document.getElementById('redirectUri').value;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Redirect URI copied!');
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('Redirect URI copied!');
+    });
+}
+
+document.querySelector('input[name="ngrok_url"]').addEventListener('input', function() {
+    const base = this.value.replace(/\/$/, '');
+    document.getElementById('redirectUri').value = base + '/webinar/facebook/callback';
+});
+</script>
+{% endblock %}

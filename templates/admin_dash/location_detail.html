@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}{{ loc.name }} – Event Directory and Logistic{% endblock %}
+{% block page_title %}Location Detail{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'location_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="text-white mb-0">{{ loc.name }}</h5>
+  <span class="badge badge-{{ loc.status }}">{{ loc.get_status_display }}</span>
+  <div class="ms-auto d-flex gap-2">
+    <a href="{% url 'contact_add' %}?location={{ loc.pk }}" class="btn btn-outline-success btn-sm"><i class="bi bi-person-plus me-1"></i>Add Contact</a>
+    <a href="{% url 'location_edit' loc.pk %}" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+    <a href="{% url 'location_delete' loc.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="data-card mb-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-building me-2 text-primary"></i>Details</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          {% if loc.description %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">DESCRIPTION</div><div>{{ loc.description }}</div></div>{% endif %}
+          <div class="col-md-6"><div class="text-muted small fw-semibold mb-1">TYPE</div><div>{{ loc.get_type_display }}</div></div>
+          {% if loc.capacity %}<div class="col-md-6"><div class="text-muted small fw-semibold mb-1">CAPACITY</div><div>{{ loc.capacity }}</div></div>{% endif %}
+          {% if loc.amenities %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">AMENITIES</div><div>{{ loc.amenities }}</div></div>{% endif %}
+          {% if loc.notes %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">NOTES</div><div class="text-muted">{{ loc.notes }}</div></div>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="data-card">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-geo-alt me-2 text-warning"></i>Address</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          {% if loc.address %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">STREET</div><div>{{ loc.address }}</div></div>{% endif %}
+          <div class="col-md-4"><div class="text-muted small fw-semibold mb-1">CITY</div><div>{{ loc.city }}</div></div>
+          <div class="col-md-4"><div class="text-muted small fw-semibold mb-1">STATE</div><div>{{ loc.state }}</div></div>
+          {% if loc.zip_code %}<div class="col-md-4"><div class="text-muted small fw-semibold mb-1">ZIP</div><div>{{ loc.zip_code }}</div></div>{% endif %}
+          {% if loc.county %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">COUNTY</div><div>{{ loc.county }}</div></div>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="data-card mb-4">
+      <div class="data-card-header"><div class="data-card-title"><i class="bi bi-person me-2 text-success"></i>Contact</div></div>
+      <div class="p-4">
+        <div class="row g-3">
+          {% if loc.contact_name %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">CONTACT NAME</div><div class="fw-semibold text-white">{{ loc.contact_name }}{% if loc.contact_title %} — {{ loc.contact_title }}{% endif %}</div></div>{% endif %}
+          {% if loc.phone %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">PHONE</div><div><a href="tel:{{ loc.phone }}" style="color:#818cf8;">{{ loc.phone }}</a></div></div>{% endif %}
+          {% if loc.email %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">EMAIL</div><div><a href="mailto:{{ loc.email }}" style="color:#818cf8;">{{ loc.email }}</a></div></div>{% endif %}
+          {% if loc.website %}<div class="col-12"><div class="text-muted small fw-semibold mb-1">WEBSITE</div><div><a href="{{ loc.website }}" target="_blank" style="color:#818cf8;">{{ loc.website }}</a></div></div>{% endif %}
+          {% if loc.facebook or loc.instagram or loc.twitter or loc.social_link %}
+          <div class="col-12 mt-3">
+            <div class="text-muted small fw-semibold mb-2">SOCIAL LINKS</div>
+            <div class="d-flex gap-2">
+              {% if loc.facebook %}<a href="{{ loc.facebook }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-facebook"></i> Facebook</a>{% endif %}
+              {% if loc.instagram %}<a href="{{ loc.instagram }}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-instagram"></i> Instagram</a>{% endif %}
+              {% if loc.twitter %}<a href="{{ loc.twitter }}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-twitter-x"></i> Twitter</a>{% endif %}
+              {% if loc.social_link %}<a href="{{ loc.social_link }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-link-45deg"></i> Link</a>{% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="data-card mb-4">
+      <div class="data-card-header d-flex align-items-center justify-content-between">
+        <div class="data-card-title"><i class="bi bi-people me-2 text-info"></i>Linked Contacts</div>
+        <a href="{% url 'contact_add' %}?location={{ loc.pk }}" class="btn btn-outline-success btn-sm py-0 px-2">
+          <i class="bi bi-plus-lg"></i>
+        </a>
+      </div>
+      <div class="p-3">
+        {% for c in contacts %}
+        <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid rgba(255,255,255,.05);">
+          <div>
+            <div class="small fw-semibold text-white">{{ c.full_name }}</div>
+            <div class="text-muted" style="font-size:.75rem;">
+              {% if c.email %}{{ c.email }}{% elif c.phone %}{{ c.phone }}{% else %}No email/phone{% endif %}
+            </div>
+          </div>
+          <a href="{% url 'contact_edit' c.pk %}" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:.7rem;">
+            <i class="bi bi-pencil"></i>
+          </a>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-3 small">
+          No linked contacts yet.
+          <a href="{% url 'contact_add' %}?location={{ loc.pk }}" style="color:#f5a623;">Add one now</a>.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

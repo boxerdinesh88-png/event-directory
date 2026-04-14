@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Compose Email Blast{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand:       #f97316;
+    --brand-light: #fff7ed;
+    --brand-dark:  #c2410c;
+    --surface:     #ffffff;
+    --surface-subtle:#fafaf9;
+    --pill-bg:     #fafafa;
+    --bg:          #f8f7f4;
+    --border:      #e5e7eb;
+    --row-border:  #f3f4f6;
+    --text:        #111827;
+    --muted:       #6b7280;
+    --all-bg:      #f3f4f6;
+    --all-border:  #6b7280;
+    --all-text:    #374151;
+    --info-bg:     #fffbeb;
+    --info-border: #fde68a;
+    --info-text:   #78350f;
+    --radius:      12px;
+    --shadow:      0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+
+    --venue-bg:#fff7ed;     --venue-border:#f97316;   --venue-text:#c2410c;
+    --apt-bg:#eff6ff;       --apt-border:#3b82f6;     --apt-text:#1d4ed8;
+    --club-bg:#fdf4ff;      --club-border:#a855f7;    --club-text:#7e22ce;
+    --lounge-bg:#f0fdf4;    --lounge-border:#22c55e;  --lounge-text:#15803d;
+    --building-bg:#fefce8;  --building-border:#eab308;--building-text:#92400e;
+    --bar-bg:#fff1f2;       --bar-border:#f43f5e;     --bar-text:#be123c;
+    --restaurant-bg:#ecfdf5;--restaurant-border:#10b981;--restaurant-text:#065f46;
+    --hotel-bg:#f0f9ff;     --hotel-border:#0ea5e9;   --hotel-text:#0c4a6e;
+    --other-bg:#f9fafb;     --other-border:#9ca3af;   --other-text:#374151;
+  }
+
+  html[data-bs-theme="dark"] {
+    --brand-light: rgba(249,115,22,.16);
+    --surface:      #111827;
+    --surface-subtle:#0f172a;
+    --pill-bg:      #1f2937;
+    --bg:           #0f1219;
+    --border:       rgba(255,255,255,.12);
+    --row-border:   rgba(255,255,255,.08);
+    --text:         #e5e7eb;
+    --muted:        #9ca3af;
+    --all-bg:       #1f2937;
+    --all-border:   #94a3b8;
+    --all-text:     #e2e8f0;
+    --info-bg:      rgba(245,158,11,.14);
+    --info-border:  rgba(245,158,11,.45);
+    --info-text:    #fcd34d;
+    --shadow:       0 4px 20px rgba(0,0,0,.35);
+
+    --venue-bg: rgba(249,115,22,.14);      --venue-text:#fed7aa;
+    --apt-bg: rgba(59,130,246,.14);        --apt-text:#bfdbfe;
+    --club-bg: rgba(168,85,247,.14);       --club-text:#e9d5ff;
+    --lounge-bg: rgba(34,197,94,.14);      --lounge-text:#bbf7d0;
+    --building-bg: rgba(234,179,8,.14);    --building-text:#fde68a;
+    --bar-bg: rgba(244,63,94,.14);         --bar-text:#fecdd3;
+    --restaurant-bg: rgba(16,185,129,.14); --restaurant-text:#a7f3d0;
+    --hotel-bg: rgba(14,165,233,.14);      --hotel-text:#bae6fd;
+    --other-bg: rgba(156,163,175,.14);     --other-text:#d1d5db;
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); }
+  .compose-wrap { max-width: 1400px; margin: 0 auto; padding: 28px 24px 60px; }
+  .compose-header { display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+  .compose-header h1 { font-family:'Playfair Display',serif; font-size:22px; color:var(--text); margin:0; }
+  .back-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--muted); font-size:13px; font-weight:500; text-decoration:none; transition:all .15s; }
+  .back-btn:hover { border-color:var(--brand); color:var(--brand); }
+
+  .compose-grid { display:grid; grid-template-columns:1fr 440px; gap:22px; align-items:start; }
+  @media (max-width:1024px) { .compose-grid { grid-template-columns:1fr; } }
+
+  .card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; }
+  .card-head { display:flex; align-items:center; gap:10px; padding:18px 22px; border-bottom:1px solid var(--border); background:var(--surface-subtle); }
+  .card-head h2 { font-size:14px; font-weight:600; color:var(--text); margin:0; }
+  .card-head .icon { width:30px; height:30px; border-radius:8px; background:var(--brand-light); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .card-body { padding:22px; }
+
+  .field-group { margin-bottom:18px; }
+  .field-label { display:block; font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
+  .field-label .req { color:var(--brand); }
+  .form-control { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:9px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); box-sizing:border-box; transition:border-color .15s, box-shadow .15s; outline:none; }
+  .form-control:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(249,115,22,.12); }
+  textarea.form-control { resize:vertical; min-height:180px; }
+
+  .recipient-summary { display:none; align-items:center; gap:12px; padding:14px 16px; border-radius:10px; margin-top:18px; border:1.5px solid var(--brand); background:var(--brand-light); }
+  .recipient-summary.visible { display:flex; }
+  .recipient-summary .rs-icon { color: var(--brand-dark); line-height: 1; }
+  .recipient-summary .rs-icon i { font-size: 20px; }
+
+  .type-hint { font-size:11px; color:var(--brand); font-weight:500; margin:0 0 10px; display:flex; align-items:center; gap:5px; }
+  .type-pills { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:4px; }
+  .type-pill { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:20px; border:2px solid var(--border); background:var(--pill-bg); color:var(--muted); font-size:12px; font-weight:500; cursor:pointer; user-select:none; white-space:nowrap; }
+  .type-pill .dot { width:7px; height:7px; border-radius:50%; background:#d1d5db; }
+  .type-pill .badge { padding:0 6px; border-radius:10px; font-size:10px; font-weight:700; background:#e5e7eb; color:#9ca3af; }
+  .type-pill.active-all { border-color:var(--all-border); background:var(--all-bg); color:var(--all-text); font-weight:700; }
+  .type-pill.active-venue { border-color:var(--venue-border); background:var(--venue-bg); color:var(--venue-text); font-weight:700; }
+  .type-pill.active-apartment { border-color:var(--apt-border); background:var(--apt-bg); color:var(--apt-text); font-weight:700; }
+  .type-pill.active-club { border-color:var(--club-border); background:var(--club-bg); color:var(--club-text); font-weight:700; }
+  .type-pill.active-lounge { border-color:var(--lounge-border); background:var(--lounge-bg); color:var(--lounge-text); font-weight:700; }
+  .type-pill.active-building { border-color:var(--building-border); background:var(--building-bg); color:var(--building-text); font-weight:700; }
+  .type-pill.active-bar { border-color:var(--bar-border); background:var(--bar-bg); color:var(--bar-text); font-weight:700; }
+  .type-pill.active-restaurant { border-color:var(--restaurant-border); background:var(--restaurant-bg); color:var(--restaurant-text); font-weight:700; }
+  .type-pill.active-hotel { border-color:var(--hotel-border); background:var(--hotel-bg); color:var(--hotel-text); font-weight:700; }
+
+  .type-confirm { display:none; align-items:center; gap:7px; margin-top:10px; padding:8px 13px; border-radius:8px; font-size:12px; font-weight:600; }
+  .type-confirm.show { display:flex; }
+
+  .loc-search-wrap { position:relative; margin:14px 0 10px; }
+  .loc-search-wrap input { padding-left:34px; }
+  .loc-search-wrap .si { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; pointer-events:none; }
+
+  .loc-list-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .loc-list-header label { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+  .loc-count-badge { font-size:12px; font-weight:700; color:var(--muted); }
+  .loc-count-badge.has-selection { color:var(--brand); }
+
+  .loc-scroll { border:1px solid var(--border); border-radius:10px; max-height:260px; overflow-y:auto; background:var(--surface); }
+  .loc-item { display:flex; align-items:center; justify-content:space-between; padding:10px 13px; border-bottom:1px solid var(--row-border); cursor:pointer; gap:10px; }
+  .loc-item:last-child { border-bottom:none; }
+  .loc-item.selected { background:var(--brand-light); }
+  .loc-item .li-check { width:17px; height:17px; min-width:17px; border-radius:5px; border:2px solid #d1d5db; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; }
+  .loc-item.selected .li-check { border-color:var(--brand); background:var(--brand); color:#fff; }
+  .loc-item .li-check i { font-size:10px; line-height:1; }
+  .loc-item .li-info { flex:1; min-width:0; }
+  .loc-item .li-name { font-size:13px; color:var(--text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .loc-item .li-meta { font-size:11px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .loc-type-tag { font-size:10px; font-weight:600; padding:2px 8px; border-radius:8px; white-space:nowrap; flex-shrink:0; }
+  .loc-empty { padding:30px; text-align:center; color:var(--muted); font-size:13px; }
+  .loc-loading { display:none; padding:24px; text-align:center; color:var(--muted); font-size:13px; }
+
+  .btn-primary { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px; background:var(--brand); color:#fff; border:none; border-radius:9px; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; }
+  .btn-secondary { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:11px; background:var(--surface); color:var(--muted); border:1px solid var(--border); border-radius:9px; font-size:14px; font-weight:600; font-family:'DM Sans',sans-serif; text-decoration:none; }
+  .btn-primary .pill-count { background:rgba(255,255,255,.25); border-radius:12px; padding:1px 9px; font-size:11px; font-weight:700; }
+
+  .info-notice { display:flex; gap:8px; align-items:flex-start; padding:11px 13px; background:var(--info-bg); border:1px solid var(--info-border); border-radius:9px; font-size:12px; color:var(--info-text); line-height:1.5; }
+  .schedule-toggle { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); cursor:pointer; margin-bottom:10px; user-select:none; }
+  .schedule-box { display:none; }
+  .schedule-box.open { display:block; }
+
+  .divider { border:none; border-top:1px solid var(--border); margin:18px 0; }
+  
+  .attachment-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface-subtle);
+    position: relative;
+  }
+  .attachment-drop-zone:hover, .attachment-drop-zone.dragover {
+    border-color: var(--brand);
+    background: var(--brand-light);
+  }
+  .drop-zone-content { pointer-events: none; }
+  .drop-icon { font-size: 36px; color: var(--muted); margin-bottom: 10px; }
+  .drop-text { font-size: 14px; color: var(--text); margin: 0 0 4px; font-weight: 500; }
+  .browse-link { color: var(--brand); font-weight: 600; }
+  .drop-hint { font-size: 11px; color: var(--muted); margin: 0; }
+  .file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  
+  .attachment-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .attachment-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .attachment-icon.pdf { background: #fee2e2; color: #dc2626; }
+  .attachment-icon.doc { background: #dbeafe; color: #2563eb; }
+  .attachment-icon.xls { background: #d1fae5; color: #059669; }
+  .attachment-icon.img { background: #fef3c7; color: #d97706; }
+  .attachment-icon.default { background: var(--pill-bg); color: var(--muted); }
+  .attachment-info { flex: 1; min-width: 0; }
+  .attachment-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .attachment-size { font-size: 11px; color: var(--muted); }
+  .attachment-remove { width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .attachment-remove:hover { background: #fee2e2; color: #dc2626; }
+  
+  .upload-progress { margin-top: 12px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--brand); border-radius: 3px; width: 0; transition: width 0.3s; }
+  .progress-text { font-size: 11px; color: var(--muted); margin-top: 6px; display: block; text-align: center; }
+  
+  .attachment-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: var(--brand);
+    color: #fff;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compose-wrap">
+  <div class="compose-header">
+    <a href="{% url 'email_list' %}" class="back-btn">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h1>Compose Email Blast</h1>
+  </div>
+
+  <form method="POST" id="composeForm">
+    {% csrf_token %}
+    <div id="locationHiddenInputs"></div>
+    <input type="hidden" name="recipient_type" id="recipientTypeInput" value="all">
+    <input type="hidden" name="scheduled_at" id="scheduledAtInput" value="">
+    <input type="hidden" name="temp_blast_id" id="tempBlastId" value="">
+    <div id="attachmentIdsContainer"></div>
+
+    <div class="compose-grid">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="icon"><i class="bi bi-envelope-paper"></i></div>
+            <h2>Email Content</h2>
+          </div>
+          <div class="card-body">
+            <div class="field-group">
+              <label class="field-label">Subject Line <span class="req">*</span></label>
+              <input type="text" name="subject" class="form-control" id="subjectField" required maxlength="300"
+                     value="{{ form.subject.value|default_if_none:'' }}">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Message Body <span class="req">*</span></label>
+              <textarea name="body_text" class="form-control" id="bodyField" required oninput="updatePreview()">{{ form.body_text.value|default_if_none:'' }}</textarea>
+            </div>
+            
+            <button type="button" class="btn btn-sm btn-outline-info mb-3" onclick="showLivePreview()">
+              <i class="bi bi-eye me-1"></i>Preview with Sample Data
+            </button>
+            
+            <div class="field-group">
+              <label class="field-label"><i class="bi bi-paperclip me-1"></i>Attachments</label>
+              <div class="attachment-drop-zone" id="dropZone">
+                <div class="drop-zone-content">
+                  <i class="bi bi-cloud-arrow-up drop-icon"></i>
+                  <p class="drop-text">Drag & drop files here or <span class="browse-link">browse</span></p>
+                  <p class="drop-hint">PDF, DOC, DOCX, XLS, XLSX, Images, TXT, CSV (Max 25MB)</p>
+                </div>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv">
+              </div>
+              <div class="attachment-list" id="attachmentList"></div>
+              <div class="upload-progress" id="uploadProgress" style="display:none;">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <span class="progress-text" id="progressText">Uploading...</span>
+              </div>
+            </div>
+            <div class="recipient-summary" id="recipientSummary">
+              <div class="rs-icon"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="rs-main">
+                <strong id="rsSummaryText">Ready to send</strong>
+                <span id="rsSummaryNames"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-head">
+            <div class="icon"><i class="bi bi-people"></i></div>
+            <h2>Recipients</h2>
+          </div>
+          <div class="card-body">
+            <div class="field-group">
+              <label class="field-label">Send To</label>
+              <select name="send_to_mode" class="form-control" id="sendToMode">
+                <option value="all">All Contacts + All Locations</option>
+                <option value="locations_only">Selected Locations Only</option>
+                <option value="contacts_only">All Contacts Only</option>
+              </select>
+            </div>
+
+            <div id="locationFilterSection">
+              <label class="field-label" style="margin-bottom:8px;">Filter Locations by Type</label>
+              <p class="type-hint"><i class="bi bi-cursor-fill"></i>Click a type to instantly select all of that type</p>
+
+              <div class="type-pills" id="typePills">
+                <button type="button" class="type-pill active-all" data-type="all">All</button>
+                {% for t in location_types %}
+                <button type="button" class="type-pill" data-type="{{ t.type|lower }}" data-count="{{ t.count }}">
+                  <span class="dot"></span>
+                  {{ t.type }}
+                  <span class="badge">{{ t.count }}</span>
+                </button>
+                {% endfor %}
+              </div>
+
+              <div class="type-confirm" id="typeConfirm"></div>
+
+              <div class="loc-search-wrap">
+                <span class="si"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="locSearch" placeholder="Search locations..." autocomplete="off">
+              </div>
+
+              <div class="loc-list-header">
+                <label>Locations</label>
+                <span class="loc-count-badge" id="locCountBadge">0 / 0</span>
+              </div>
+
+              <div class="loc-scroll" id="locScroll">
+                <div class="loc-loading" id="locLoading">Loading...</div>
+                <div id="locList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="icon"><i class="bi bi-calendar-event"></i></div>
+            <h2>Schedule</h2>
+          </div>
+          <div class="card-body">
+            <label class="schedule-toggle">
+              <input type="checkbox" id="scheduleToggle">Send at a specific date & time
+            </label>
+            <div class="schedule-box" id="scheduleBox">
+              <input type="datetime-local" class="form-control" id="schedulePicker" name="schedule_ui">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+            <button type="submit" name="action" value="draft" class="btn-primary" id="saveBtn">
+              <i class="bi bi-floppy"></i>
+              Save as Draft
+              <span class="pill-count" id="btnCount" style="display:none;"></span>
+            </button>
+            <a href="{% url 'email_list' %}" class="btn-secondary"><i class="bi bi-x"></i> Cancel</a>
+            <hr class="divider">
+            <div class="info-notice"><span><i class="bi bi-check-circle-fill"></i></span><span>Save draft first, then send from Email Blasts list.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Live Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Email Preview</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="previewContent" style="background:#ffffff;color:#333333;font-family:Arial,sans-serif;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  let allLocations = [];
+  let filteredLocs = [];
+  let displayedLocs = [];
+  let selectedIds = new Set();
+  let activeType = 'all';
+
+  const locList = document.getElementById('locList');
+  const locLoading = document.getElementById('locLoading');
+  const locSearch = document.getElementById('locSearch');
+  const locCount = document.getElementById('locCountBadge');
+  const typeConfirm = document.getElementById('typeConfirm');
+  const recSummary = document.getElementById('recipientSummary');
+  const rsSummText = document.getElementById('rsSummaryText');
+  const rsSummNames = document.getElementById('rsSummaryNames');
+  const hiddenWrap = document.getElementById('locationHiddenInputs');
+  const rcTypeInput = document.getElementById('recipientTypeInput');
+  const btnCount = document.getElementById('btnCount');
+  const sendToMode = document.getElementById('sendToMode');
+  const filterSec = document.getElementById('locationFilterSection');
+
+  function fetchLocations(type, autoSelect = false) {
+    locLoading.style.display = 'block';
+    locList.innerHTML = '';
+    fetch(`{% url 'api_locations_by_type' %}?type=${encodeURIComponent(type)}`)
+      .then(r => r.json())
+      .then(data => {
+        allLocations = data.locations || [];
+        filteredLocs = allLocations;
+        locLoading.style.display = 'none';
+        if (autoSelect) {
+          selectedIds = new Set(filteredLocs.map(l => l.id));
+          updateHiddenInputs();
+          updateSummary();
+          showConfirm(type, selectedIds.size);
+        }
+        applySearch();
+        updateTypePillCounts(data.type_counts || {});
+      })
+      .catch(() => {
+        locLoading.style.display = 'none';
+        locList.innerHTML = '<div class="loc-empty">Could not load locations.</div>';
+      });
+  }
+
+  function updateTypePillCounts(counts) {
+    document.querySelectorAll('.type-pill[data-type]').forEach(pill => {
+      const t = pill.dataset.type;
+      if (t === 'all') return;
+      const badge = pill.querySelector('.badge');
+      if (badge && counts[t] !== undefined) badge.textContent = counts[t];
+    });
+  }
+
+  function renderList(locs) {
+    if (!locs.length) {
+      locList.innerHTML = '<div class="loc-empty">No locations found.</div>';
+      updateCounter();
+      return;
+    }
+    locList.innerHTML = locs.map(loc => {
+      const sel = selectedIds.has(loc.id);
+      return `<div class="loc-item ${sel ? 'selected' : ''}" data-id="${loc.id}" onclick="toggleLoc(${loc.id})">
+        <div class="li-check"><i class="bi bi-check-lg"></i></div>
+        <div class="li-info">
+          <div class="li-name">${escHtml(loc.name)}</div>
+          <div class="li-meta">${escHtml(loc.city || '')}${loc.email ? ' - ' + escHtml(loc.email) : ''}</div>
+        </div>
+        <span class="loc-type-tag">${escHtml(loc.type || 'other')}</span>
+      </div>`;
+    }).join('');
+    updateCounter();
+  }
+
+  window.toggleLoc = function(id) {
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    const row = locList.querySelector(`[data-id="${id}"]`);
+    if (row) row.classList.toggle('selected', selectedIds.has(id));
+    updateCounter();
+    updateHiddenInputs();
+    updateSummary();
+  };
+
+  document.getElementById('typePills').addEventListener('click', e => {
+    const pill = e.target.closest('.type-pill');
+    if (!pill) return;
+    const type = pill.dataset.type;
+    activeType = type;
+
+    document.querySelectorAll('.type-pill').forEach(p => p.className = 'type-pill');
+    pill.classList.add(`active-${type}`);
+    fetchAndSelectAll(type);
+  });
+
+  function fetchAndSelectAll(type) {
+    locLoading.style.display = 'block';
+    locList.innerHTML = '';
+    fetch(`{% url 'api_locations_by_type' %}?type=${encodeURIComponent(type)}`)
+      .then(r => r.json())
+      .then(data => {
+        allLocations = data.locations || [];
+        filteredLocs = allLocations;
+        locLoading.style.display = 'none';
+        selectedIds = new Set(filteredLocs.map(l => l.id));
+        applySearch();
+        updateHiddenInputs();
+        updateSummary();
+        showConfirm(type, selectedIds.size);
+        updateTypePillCounts(data.type_counts || {});
+      })
+      .catch(() => { locLoading.style.display = 'none'; });
+  }
+
+  function showConfirm(type, count) {
+    const label = type === 'all' ? 'all locations' : `all ${capitalise(type)} locations`;
+    typeConfirm.className = 'type-confirm show';
+    typeConfirm.innerHTML = `<i class="bi bi-check-circle-fill"></i> Auto-selected ${count} ${label}`;
+    clearTimeout(typeConfirm._timer);
+    typeConfirm._timer = setTimeout(() => typeConfirm.classList.remove('show'), 3000);
+  }
+
+  locSearch.addEventListener('input', applySearch);
+  function applySearch() {
+    const q = locSearch.value.trim().toLowerCase();
+    displayedLocs = q
+      ? filteredLocs.filter(l => (l.name || '').toLowerCase().includes(q) || (l.city || '').toLowerCase().includes(q) || (l.email || '').toLowerCase().includes(q))
+      : filteredLocs;
+    renderList(displayedLocs);
+  }
+
+  function updateCounter() {
+    const sel = selectedIds.size;
+    const total = filteredLocs.length;
+    locCount.textContent = `${sel} / ${total} selected`;
+    locCount.classList.toggle('has-selection', sel > 0);
+    btnCount.textContent = `${sel} recipients`;
+    btnCount.style.display = sel > 0 ? 'inline' : 'none';
+  }
+
+  function updateHiddenInputs() {
+    hiddenWrap.innerHTML = '';
+    selectedIds.forEach(id => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'target_locations';
+      inp.value = id;
+      hiddenWrap.appendChild(inp);
+    });
+  }
+
+  function updateSummary() {
+    if (!selectedIds.size) {
+      recSummary.classList.remove('visible');
+      return;
+    }
+    recSummary.classList.add('visible');
+    const typeLabel = activeType === 'all' ? 'locations' : capitalise(activeType) + ' locations';
+    rsSummText.textContent = `Sending to ${selectedIds.size} ${typeLabel}`;
+    const names = filteredLocs.filter(l => selectedIds.has(l.id)).slice(0, 4).map(l => l.name);
+    const extra = selectedIds.size - names.length;
+    rsSummNames.textContent = names.join(', ') + (extra > 0 ? ` + ${extra} more` : '');
+  }
+
+  sendToMode.addEventListener('change', function () {
+    if (this.value === 'contacts_only') {
+      filterSec.style.display = 'none';
+      rcTypeInput.value = 'all';
+      selectedIds = new Set();
+      updateHiddenInputs();
+      updateCounter();
+      updateSummary();
+    } else if (this.value === 'locations_only') {
+      filterSec.style.display = 'block';
+      rcTypeInput.value = 'location';
+    } else {
+      filterSec.style.display = 'block';
+      rcTypeInput.value = 'all';
+    }
+  });
+
+  document.getElementById('scheduleToggle').addEventListener('change', function () {
+    document.getElementById('scheduleBox').classList.toggle('open', this.checked);
+  });
+  document.getElementById('schedulePicker').addEventListener('change', function () {
+    document.getElementById('scheduledAtInput').value = this.value;
+  });
+
+  document.getElementById('composeForm').addEventListener('submit', function (e) {
+    const mode = sendToMode.value;
+    if ((mode === 'locations_only' || mode === 'all') && selectedIds.size === 0) {
+      if (!confirm('No locations selected. Continue anyway?')) {
+        e.preventDefault();
+      }
+    }
+    syncAttachmentIds();
+  });
+
+  function capitalise(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  fetchLocations('all', true);
+  
+  // ─── Attachment Upload System ───────────────────────────────────────
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const attachmentList = document.getElementById('attachmentList');
+  const uploadProgress = document.getElementById('uploadProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const attachmentIdsContainer = document.getElementById('attachmentIdsContainer');
+  const tempBlastIdInput = document.getElementById('tempBlastId');
+  
+  let uploadedAttachments = [];
+  
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length) handleFiles(files);
+  });
+  
+  fileInput.addEventListener('change', e => {
+    if (e.target.files.length) handleFiles(e.target.files);
+    fileInput.value = '';
+  });
+  
+  async function handleFiles(files) {
+    const maxSize = 25 * 1024 * 1024;
+    const allowedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt', 'csv'];
+    
+    for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!allowedExts.includes(ext)) {
+        alert(`"${file.name}" - File type not allowed.`);
+        continue;
+      }
+      if (file.size > maxSize) {
+        alert(`"${file.name}" - File too large. Max 25MB.`);
+        continue;
+      }
+      await uploadFile(file);
+    }
+  }
+  
+  async function uploadFile(file) {
+    uploadProgress.style.display = 'block';
+    progressFill.style.width = '0%';
+    progressText.textContent = `Uploading ${file.name}...`;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    if (tempBlastIdInput.value) formData.append('blast_id', tempBlastIdInput.value);
+    
+    try {
+      const response = await fetch('{% url "email_attachment_upload" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+      });
+      
+      const data = await response.json();
+      progressFill.style.width = '100%';
+      
+      if (data.success) {
+        if (!tempBlastIdInput.value && data.blast_id) {
+          tempBlastIdInput.value = data.blast_id;
+        }
+        uploadedAttachments.push({
+          id: data.attachment_id,
+          name: data.name,
+          size: data.size,
+          size_formatted: data.size_formatted,
+        });
+        renderAttachments();
+        progressText.textContent = `${file.name} uploaded!`;
+      } else {
+        alert('Upload failed: ' + (data.error || 'Unknown error'));
+        progressText.textContent = 'Upload failed';
+      }
+    } catch (err) {
+      alert('Upload error: ' + err.message);
+      progressText.textContent = 'Upload error';
+    }
+    
+    setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
+  }
+  
+  function renderAttachments() {
+    attachmentList.innerHTML = uploadedAttachments.map(att => {
+      const ext = att.name.split('.').pop().toLowerCase();
+      let iconClass = 'default';
+      if (['pdf'].includes(ext)) iconClass = 'pdf';
+      else if (['doc', 'docx'].includes(ext)) iconClass = 'doc';
+      else if (['xls', 'xlsx'].includes(ext)) iconClass = 'xls';
+      else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) iconClass = 'img';
+      
+      const iconMap = { pdf: 'bi-file-earmark-pdf', doc: 'bi-file-earmark-word', xls: 'bi-file-earmark-excel', img: 'bi-file-earmark-image', default: 'bi-file-earmark' };
+      const icon = iconMap[iconClass] || 'bi-file-earmark';
+      
+      return `<div class="attachment-item" data-id="${att.id}">
+        <div class="attachment-icon ${iconClass}"><i class="bi ${icon}"></i></div>
+        <div class="attachment-info">
+          <div class="attachment-name" title="${escHtml(att.name)}">${escHtml(att.name)}</div>
+          <div class="attachment-size">${att.size_formatted}</div>
+        </div>
+        <button type="button" class="attachment-remove" onclick="removeAttachment('${att.id}')"><i class="bi bi-x-lg"></i></button>
+      </div>`;
+    }).join('');
+  }
+  
+  window.removeAttachment = async function(id) {
+    try {
+      const formData = new FormData();
+      formData.append('attachment_id', id);
+      const response = await fetch('{% url "email_attachment_delete" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) {
+        uploadedAttachments = uploadedAttachments.filter(a => a.id !== id);
+        renderAttachments();
+        if (!uploadedAttachments.length && data.blast_id) {
+          tempBlastIdInput.value = '';
+        }
+      } else {
+        alert('Delete failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Delete error: ' + err.message);
+    }
+  };
+  
+  function syncAttachmentIds() {
+    attachmentIdsContainer.innerHTML = '';
+    uploadedAttachments.forEach(att => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'attachment_ids';
+      input.value = att.id;
+      attachmentIdsContainer.appendChild(input);
+    });
+  }
+  // Pre-fill from email template if redirected from template library
+  {% if tpl_subject %}
+  (function() {
+    const subjectEl = document.getElementById('subjectField');
+    const bodyEl    = document.getElementById('bodyField');
+    if (subjectEl) subjectEl.value = "{{ tpl_subject|escapejs }}";
+    if (bodyEl) bodyEl.value = "{{ tpl_body|escapejs }}";
+  })();
+  {% endif %}
+})();
+
+// Template variable substitution data
+const SAMPLE_DATA = {
+  '{First_Name}': 'Alex',
+  '{Last_Name}': 'Johnson',
+  '{Venue_Name}': 'The Grand Ballroom',
+  '{Event_Name}': 'Event Directory and Logistic Matchmaking Night',
+  '{Date}': 'Friday, April 18, 2025',
+  '{Time}': '7:00 PM',
+  '{City}': 'Miami',
+  '{Organizer_Name}': 'Maria S.',
+  '{Website_Link}': '<a href="#" style="color:#f97316;">Event Directory and Logistic</a>',
+  '{Event_Link}': '<a href="#" style="color:#f97316;">Register Now</a>',
+  '{Address}': '123 Brickell Ave, Miami, FL',
+  '{Phone}': '(305) 555-1234',
+  '{Email}': 'events@EventDirectoryandLogistic.com'
+};
+
+function updatePreview() {
+  // Auto-update preview on input (optional)
+}
+
+function showLivePreview() {
+  const subject = document.getElementById('subjectField').value || 'Your Subject Here';
+  const body = document.getElementById('bodyField').value || 'Your message content here...';
+  
+  // Replace template variables with sample data
+  let previewBody = body;
+  for (const [variable, value] of Object.entries(SAMPLE_DATA)) {
+    const highlight = `<span style="background:#fff3cd;padding:2px 6px;border-radius:3px;color:#856404;font-weight:500;">${value}</span>`;
+    previewBody = previewBody.split(variable).join(highlight);
+  }
+  
+  // Convert double newlines to paragraphs, single newlines to <br>
+  const paragraphs = previewBody.split('\n\n');
+  let bodyHtml = '';
+  for (const para of paragraphs) {
+    if (para.trim()) {
+      const paraFormatted = para.trim().replace(/\n/g, '<br>');
+      bodyHtml += `<p style="margin: 0 0 16px 0; line-height: 1.6; color: #333333;">${paraFormatted}</p>`;
+    }
+  }
+  
+  const previewContent = document.getElementById('previewContent');
+  previewContent.innerHTML = `
+    <div style="max-width: 600px; margin: 0 auto; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+      <!-- Header -->
+      <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px 40px;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Event Directory and Logistic</h1>
+        <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">${subject}</p>
+      </div>
+      <!-- Body -->
+      <div style="padding: 40px; background: #ffffff;">
+        ${bodyHtml}
+      </div>
+      <!-- Footer -->
+      <div style="background-color: #f9fafb; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-align: center;">
+          You're receiving this email because you're subscribed to Event Directory and Logistic updates.
+        </p>
+        <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
+          © 2025 Event Directory and Logistic. All rights reserved.
+        </p>
+      </div>
+    </div>
+    <div style="background:#f0f9ff;padding:12px 20px;font-size:12px;color:#0369a1;text-align:center;">
+      <i class="bi bi-info-circle"></i> Yellow highlighted text = template variables (will be replaced when sent)
+    </div>
+  `;
+  
+  new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+</script>
+{% endblock %}

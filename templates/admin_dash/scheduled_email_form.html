@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if email %}Edit{% else %}Create{% endif %} Scheduled Email</h2>
+    
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="id_recipient_email" class="form-label">Recipient Email</label>
+            <input type="email" name="recipient_email" id="id_recipient_email" class="form-control" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_subject" class="form-label">Subject</label>
+            <input type="text" name="subject" id="id_subject" class="form-control" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_message" class="form-label">Message</label>
+            <textarea name="message" id="id_message" class="form-control" rows="5" required></textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_scheduled_at" class="form-label">Schedule (optional)</label>
+            <input type="datetime-local" name="scheduled_at" id="id_scheduled_at" class="form-control">
+            <small class="text-muted">Leave empty to send immediately</small>
+        </div>
+        
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">
+                {% if email %}Update{% else %}Create{% endif %} Email
+            </button>
+            <a href="{% url 'scheduled_email_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

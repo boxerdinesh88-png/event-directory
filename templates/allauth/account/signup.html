@@ -1,0 +1,28 @@
+{% extends "allauth/layouts/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h2 class="auth-title">{% trans "Sign Up" %}</h2>
+</div>
+
+<form method="post" action="{% url 'account_signup' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-gold">
+      <i class="bi bi-person-plus me-2"></i>{% trans "Sign Up" %}
+    </button>
+  </div>
+</form>
+
+{% if login_url %}
+<p class="text-center mt-3">
+  <span class="text-muted">{% trans "Already have an account?" %}</span>
+  <a href="{{ login_url }}">{% trans "Sign In" %}</a>
+</p>
+{% endif %}
+{% endblock %}

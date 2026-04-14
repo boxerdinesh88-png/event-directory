@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Events – Webinar System{% endblock %}
+{% block page_title %}<i class="bi bi-calendar-event-fill me-2" style="color: #ef4444;"></i>Webinar Events{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Create Event -->
+    <div class="col-lg-4">
+        <div class="data-card h-100">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-plus-circle text-success me-2"></i>Create Event</div>
+            </div>
+            <div class="p-3">
+                <form method="post" action="{% url 'webinar_event_create' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Event Title *</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g., Decipher the Dating Code - Live Webinar" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea name="description" class="form-control" rows="4" placeholder="Event description..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Registration Link</label>
+                        <input type="url" name="registration_link" class="form-control" placeholder="https://zoom.us/j/...">
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Start Date/Time</label>
+                            <input type="datetime-local" name="event_date" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">End Date/Time</label>
+                            <input type="datetime-local" name="event_end_date" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Cover Image</label>
+                        <input type="file" name="cover_image" class="form-control" accept="image/*">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="draft">Draft</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="active">Active</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-plus-lg me-2"></i>Create Event
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Events List -->
+    <div class="col-lg-8">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title">
+                    <i class="bi bi-calendar-week me-2" style="color: #ef4444;"></i>All Events
+                    <span class="badge bg-danger bg-opacity-10 text-danger ms-2" style="font-size: 0.8rem;">{{ events.count }}</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Date/Time</th>
+                            <th>Registration</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ event.title }}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                        {{ event.description|truncatechars:50|default:"No description" }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if event.event_date %}
+                                        <div style="font-size: 0.875rem;">
+                                            <i class="bi bi-calendar3 me-1" style="color: #ef4444;"></i>
+                                            {{ event.event_date|date:"M d, Y" }}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ event.event_date|time:"g:i A" }}
+                                        </div>
+                                    {% else %}
+                                        <span style="color: var(--text-secondary);">Not scheduled</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if event.registration_link %}
+                                        <a href="{{ event.registration_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>Link
+                                        </a>
+                                    {% else %}
+                                        <span style="color: var(--text-secondary);">No link</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if event.status == 'active' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+                                    {% elif event.status == 'scheduled' %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning">Scheduled</span>
+                                    {% elif event.status == 'completed' %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Completed</span>
+                                    {% elif event.status == 'cancelled' %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger">Cancelled</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Draft</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'webinar_delete_event' event.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this event?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4" style="color: var(--text-secondary);">
+                                    <i class="bi bi-calendar-x" style="font-size: 2rem; opacity: 0.5;"></i>
+                                    <p class="mb-0 mt-2">No events created yet. Create your first webinar event.</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

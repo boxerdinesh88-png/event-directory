@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+  body { background: linear-gradient(135deg,#f8fafc 0%,#eef2ff 50%,#fff7ed 100%); min-height: 100vh; display: flex; align-items: center; }
+  .auth-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 24px; padding: 2.5rem; max-width: 440px; width: 100%; margin: auto; }
+  html[data-bs-theme="dark"] .auth-card { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); }
+  .btn-gold { background: linear-gradient(135deg,#f5a623,#c8851b); color: #000; font-weight: 700; border: none; border-radius: 10px; padding: .8rem; }
+  .btn-gold:hover { filter: brightness(1.1); color: #000; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="auth-card">
+    {% block content_inner %}{{ block.super }}{% endblock %}
+  </div>
+</div>
+{% endblock %}

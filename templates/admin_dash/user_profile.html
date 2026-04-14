@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+{% block title %}My Profile – Event Directory and Logistic{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Left Column - Profile Card -->
+  <div class="col-lg-4">
+    <div class="profile-card">
+      <!-- Cover Background -->
+      <div class="profile-cover">
+        <div class="profile-cover-pattern"></div>
+      </div>
+      
+      <!-- Profile Content -->
+      <div class="profile-content text-center">
+        <!-- Avatar with Ring -->
+        <div class="profile-avatar-wrapper">
+          {% if user_profile.photo %}
+          <img src="{{ user_profile.photo.url }}" alt="Profile Photo" class="profile-avatar-img" id="profilePhoto">
+          {% else %}
+          <div class="profile-avatar" id="profilePhoto">
+            {{ profile.first_name.0|upper }}{{ profile.last_name.0|upper }}
+          </div>
+          {% endif %}
+          <div class="profile-status-indicator">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          
+          <!-- Photo Upload Overlay -->
+          <label for="photoInput" class="profile-photo-overlay" id="photoOverlay">
+            <i class="bi bi-camera-fill"></i>
+          </label>
+          <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="uploadPhoto(this)">
+        </div>
+        
+        <!-- User Info -->
+        <h4 class="profile-name">{{ profile.first_name }} {{ profile.last_name }}</h4>
+        <p class="profile-email">{{ profile.email }}</p>
+        
+        <!-- Role Badge -->
+        <div class="profile-role">
+          <span class="role-badge">
+            <i class="bi bi-shield-check me-1"></i>Administrator
+          </span>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="profile-quick-stats">
+          <div class="quick-stat">
+            <span class="quick-stat-value">{{ profile.date_joined }}</span>
+            <span class="quick-stat-label">Member Since</span>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="profile-actions">
+          <a href="{% url 'user_settings' %}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-gear me-1"></i>Settings
+          </a>
+          {% if user_profile.photo %}
+          <button type="button" class="btn btn-outline-danger btn-sm" onclick="removePhoto()">
+            <i class="bi bi-trash me-1"></i>Remove
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column - Profile Details -->
+  <div class="col-lg-8">
+    <!-- Personal Information -->
+    <div class="data-card mb-4">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-person-badge me-2"></i>Personal Information</div>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{% url 'user_profile_update' %}" id="profileForm">
+          {% csrf_token %}
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label" for="first_name">First Name</label>
+              <input type="text" name="first_name" id="first_name" class="form-control" value="{{ profile.first_name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="last_name">Last Name</label>
+              <input type="text" name="last_name" id="last_name" class="form-control" value="{{ profile.last_name }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="email">Email Address</label>
+              <input type="email" name="email" id="email" class="form-control" value="{{ profile.email }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="username">Username</label>
+              <input type="text" id="username" class="form-control" value="{{ profile.username }}" disabled>
+              <div class="form-text">Username cannot be changed</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="last_login">Last Login</label>
+              <input type="text" id="last_login" class="form-control" value="{{ profile.last_login }}" disabled>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="bio">Bio</label>
+              <textarea name="bio" id="bio" class="form-control" rows="3" placeholder="Tell us about yourself...">{{ user_profile.bio|default:'' }}</textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="phone">Phone</label>
+              <input type="tel" name="phone" id="phone" class="form-control" value="{{ user_profile.phone|default:'' }}" placeholder="(555) 123-4567">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="city">City</label>
+              <input type="text" name="city" id="city" class="form-control" value="{{ user_profile.city|default:'' }}" placeholder="Miami, FL">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="company">Company</label>
+              <input type="text" name="company" id="company" class="form-control" value="{{ user_profile.company|default:'' }}" placeholder="Your Company">
+            </div>
+          </div>
+          <hr style="border-color:var(--fe-border);margin:24px 0;">
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-gold">
+              <i class="bi bi-check-lg me-1"></i>Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Account Security -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-shield-lock me-2"></i>Security</div>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="security-item">
+              <div class="security-icon" style="background:rgba(16,185,129,.15);">
+                <i class="bi bi-envelope-check" style="color:#34d399;"></i>
+              </div>
+              <div class="security-info">
+                <h6>Email Verified</h6>
+                <p class="text-muted mb-0 small">{{ profile.email }}</p>
+              </div>
+              <div class="security-status verified">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="security-item">
+              <div class="security-icon" style="background:rgba(245,166,35,.15);">
+                <i class="bi bi-phone" style="color:#fbbf24;"></i>
+              </div>
+              <div class="security-info">
+                <h6>2FA Status</h6>
+                <p class="text-muted mb-0 small">Configure two-factor authentication</p>
+              </div>
+              <div class="security-status">
+                <a href="{% url 'otp_setup' %}" class="btn btn-sm btn-outline-warning">Setup</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Profile Card */
+  .profile-card {
+    background: var(--fe-card);
+    border: 1px solid var(--fe-border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* Cover Background */
+  .profile-cover {
+    height: 120px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-cover-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.15) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%);
+  }
+  
+  /* Profile Content */
+  .profile-content {
+    padding: 0 24px 24px;
+    margin-top: -50px;
+  }
+  
+  /* Avatar */
+  .profile-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 36px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: #ffffff;
+    border: 4px solid var(--fe-card);
+    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
+  }
+  .profile-avatar-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--fe-card);
+    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
+  }
+  .profile-status-indicator {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    border: 2px solid var(--fe-card);
+  }
+  
+  /* Photo Overlay */
+  .profile-photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    cursor: pointer;
+    color: white;
+    font-size: 24px;
+  }
+  .profile-avatar-wrapper:hover .profile-photo-overlay {
+    opacity: 1;
+  }
+  
+  /* User Info */
+  .profile-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text, #fff);
+  }
+  .profile-email {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-bottom: 12px;
+  }
+  
+  /* Role Badge */
+  .profile-role {
+    margin-bottom: 20px;
+  }
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    background: rgba(245, 166, 35, 0.15);
+    border: 1px solid rgba(245, 166, 35, 0.3);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fbbf24;
+  }
+  
+  /* Quick Stats */
+  .profile-quick-stats {
+    padding: 16px 0;
+    border-top: 1px solid var(--fe-border);
+    border-bottom: 1px solid var(--fe-border);
+    margin-bottom: 20px;
+  }
+  .quick-stat {
+    text-align: center;
+  }
+  .quick-stat-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text, #fff);
+  }
+  .quick-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  /* Profile Actions */
+  .profile-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn-outline-light {
+    border-color: var(--fe-border);
+    color: #9ca3af;
+  }
+  .btn-outline-light:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--fe-border);
+    color: #fff;
+  }
+  .btn-outline-danger {
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #f87171;
+  }
+  .btn-outline-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #f87171;
+    color: #f87171;
+  }
+  
+  /* Security Items */
+  .security-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--fe-border);
+    border-radius: 12px;
+  }
+  .security-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+  .security-info {
+    flex: 1;
+  }
+  .security-info h6 {
+    margin: 0 0 4px 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .security-status {
+    display: flex;
+    align-items: center;
+  }
+  .security-status.verified {
+    color: #22c55e;
+    font-size: 1.25rem;
+  }
+  
+  /* Light theme overrides */
+  html[data-bs-theme="light"] .profile-card {
+    background: #ffffff;
+  }
+  html[data-bs-theme="light"] .profile-avatar,
+  html[data-bs-theme="light"] .profile-avatar-img {
+    border-color: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  html[data-bs-theme="light"] .profile-status-indicator {
+    border-color: #ffffff;
+  }
+  html[data-bs-theme="light"] .profile-name {
+    color: #111827;
+  }
+  html[data-bs-theme="light"] .quick-stat-value {
+    color: #111827;
+  }
+  html[data-bs-theme="light"] .security-item {
+    background: #f9fafb;
+  }
+  
+  .data-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--fe-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .data-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .card-body {
+    padding: 1.5rem;
+  }
+</style>
+
+{% block extra_js %}
+<script>
+function uploadPhoto(input) {
+    if (input.files && input.files[0]) {
+        const formData = new FormData();
+        formData.append('photo', input.files[0]);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "user_upload_photo" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to upload photo: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to upload photo');
+        });
+    }
+}
+
+function removePhoto() {
+    if (confirm('Are you sure you want to remove your profile photo?')) {
+        fetch('{% url "user_remove_photo" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to remove photo: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to remove photo');
+        });
+    }
+}
+</script>
+{% endblock extra_js %}
+{% endblock content %}

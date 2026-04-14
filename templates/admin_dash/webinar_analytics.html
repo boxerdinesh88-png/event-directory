@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% block title %}Analytics – Webinar System{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up me-2" style="color: #0ea5e9;"></i>Analytics & Reports{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon" style="background: rgba(34,197,94,0.15);">
+                    <i class="bi bi-check-circle-fill" style="color: #22c55e;"></i>
+                </div>
+            </div>
+            <div class="stat-value" style="color: #22c55e;">{{ stats.success_count }}</div>
+            <div class="stat-label">Successful Posts</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon" style="background: rgba(239,68,68,0.15);">
+                    <i class="bi bi-x-circle-fill" style="color: #ef4444;"></i>
+                </div>
+            </div>
+            <div class="stat-value" style="color: #ef4444;">{{ stats.failed_count }}</div>
+            <div class="stat-label">Failed Posts</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon" style="background: rgba(156,163,175,0.15);">
+                    <i class="bi bi-clock-fill" style="color: #9ca3af;"></i>
+                </div>
+            </div>
+            <div class="stat-value" style="color: #9ca3af;">{{ stats.pending_count }}</div>
+            <div class="stat-label">Pending Posts</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon" style="background: rgba(245,166,35,0.15);">
+                    <i class="bi bi-send-fill" style="color: #f5a623;"></i>
+                </div>
+            </div>
+            <div class="stat-value" style="color: #f5a623;">{{ stats.total_likes|add:stats.total_comments|add:stats.total_shares }}</div>
+            <div class="stat-label">Total Engagements</div>
+        </div>
+    </div>
+</div>
+
+<!-- Engagement Breakdown -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(239,68,68,0.15); width: 60px; height: 60px;">
+                    <i class="bi bi-hand-thumbs-up-fill" style="color: #ef4444; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #ef4444;">{{ stats.total_likes }}</div>
+                    <div class="stat-label">Total Likes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(14,165,233,0.15); width: 60px; height: 60px;">
+                    <i class="bi bi-chat-left-text-fill" style="color: #0ea5e9; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #0ea5e9;">{{ stats.total_comments }}</div>
+                    <div class="stat-label">Total Comments</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(168,85,247,0.15); width: 60px; height: 60px;">
+                    <i class="bi bi-share-fill" style="color: #a855f7; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #a855f7;">{{ stats.total_shares }}</div>
+                    <div class="stat-label">Total Shares</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Post Status Breakdown -->
+    <div class="col-lg-6">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Posts by Status</div>
+            </div>
+            <div class="p-3">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in posts_by_status %}
+                                {% with total=posts_by_status|length %}
+                                <tr>
+                                    <td>
+                                        {% if item.status == 'draft' %}
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary">Draft</span>
+                                        {% elif item.status == 'scheduled' %}
+                                            <span class="badge bg-warning bg-opacity-10 text-warning">Scheduled</span>
+                                        {% elif item.status == 'posted' %}
+                                            <span class="badge bg-success bg-opacity-10 text-success">Posted</span>
+                                        {% elif item.status == 'partial' %}
+                                            <span class="badge bg-info bg-opacity-10 text-info">Partial</span>
+                                        {% else %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.count }}</td>
+                                    <td>
+                                        <div class="progress mb-0" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ item.count }}%"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-3" style="color: var(--text-secondary);">No data</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Report -->
+    <div class="col-lg-6">
+        <div class="data-card h-100">
+            <div class="data-card-header">
+                <div class="data-card-title"><i class="bi bi-download text-success me-2"></i>Export Reports</div>
+            </div>
+            <div class="p-3">
+                <p style="color: var(--text-secondary);">Download comprehensive reports of your webinar posting activity.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'webinar_export_report' %}" class="btn btn-success">
+                        <i class="bi bi-download me-2"></i>Export Groups Report (CSV)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="data-card mt-4">
+    <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-activity text-info me-2"></i>Recent Activity Log</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Destination</th>
+                    <th>Post</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                    <th>Engagement</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_activity %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold" style="font-size: 0.875rem;">
+                                {% if log.group %}
+                                    {{ log.group.name }}
+                                {% elif log.account %}
+                                    {{ log.account.name }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {% if log.group %}
+                                    Group
+                                {% elif log.account %}
+                                    {{ log.account.get_account_type_display }}
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem;">{{ log.post.title|truncatechars:30 }}</div>
+                            {% if log.post_url %}
+                                <a href="{{ log.post_url }}" target="_blank" class="text-decoration-none" style="font-size: 0.75rem;">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.status == 'success' %}
+                                <span class="badge bg-success bg-opacity-10 text-success">Success</span>
+                            {% elif log.status == 'failed' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger">Failed</span>
+                                {% if log.error_message %}
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary);">{{ log.error_message|truncatechars:30 }}</div>
+                                {% endif %}
+                            {% elif log.status == 'skipped' %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">Skipped</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.sent_at %}
+                                <div style="font-size: 0.85rem;">{{ log.sent_at|date:"M d" }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ log.sent_at|time:"g:i A" }}</div>
+                            {% else %}
+                                <span style="color: var(--text-secondary);">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2" style="font-size: 0.8rem;">
+                                <span class="text-danger"><i class="bi bi-hand-thumbs-up me-1"></i>{{ log.likes_count }}</span>
+                                <span class="text-info"><i class="bi bi-chat-left me-1"></i>{{ log.comments_count }}</span>
+                                <span class="text-primary"><i class="bi bi-share me-1"></i>{{ log.shares_count }}</span>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4" style="color: var(--text-secondary);">
+                            <i class="bi bi-activity" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p class="mb-0 mt-2">No activity recorded yet.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

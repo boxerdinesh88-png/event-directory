@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% block title %}Settings – Event Directory and Logistic{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <!-- Change Password -->
+    <div class="data-card mb-4">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-shield-lock me-2"></i>Change Password</div>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{% url 'user_update_password' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="currentPassword">Current Password</label>
+            <div class="position-relative">
+              <input type="password" name="current_password" class="form-control" id="currentPassword" required>
+              <button type="button" class="btn btn-link position-absolute top-0 end-0 p-2 text-muted" onclick="togglePassword('currentPassword')">
+                <i class="bi bi-eye" id="currentPasswordIcon"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="newPassword">New Password</label>
+            <div class="position-relative">
+              <input type="password" name="new_password" class="form-control" id="newPassword" required minlength="8">
+              <button type="button" class="btn btn-link position-absolute top-0 end-0 p-2 text-muted" onclick="togglePassword('newPassword')">
+                <i class="bi bi-eye" id="newPasswordIcon"></i>
+              </button>
+            </div>
+            <div class="form-text">Minimum 8 characters</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="confirmPassword">Confirm New Password</label>
+            <div class="position-relative">
+              <input type="password" name="confirm_password" class="form-control" id="confirmPassword" required>
+              <button type="button" class="btn btn-link position-absolute top-0 end-0 p-2 text-muted" onclick="togglePassword('confirmPassword')">
+                <i class="bi bi-eye" id="confirmPasswordIcon"></i>
+              </button>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-gold">
+              <i class="bi bi-check-lg me-1"></i>Update Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="data-card mb-4">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-lock me-2"></i>Security Settings</div>
+      </div>
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h6 class="mb-1">Two-Factor Authentication</h6>
+            <p class="text-muted small mb-0">Add an extra layer of security to your account</p>
+          </div>
+          <a href="{% url 'otp_setup' %}" class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-phone me-1"></i>Configure
+          </a>
+        </div>
+        <hr style="border-color:var(--fe-border);">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h6 class="mb-1">Session Management</h6>
+            <p class="text-muted small mb-0">Manage your active sessions across devices</p>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" disabled>
+            <i class="bi bi-clock-history me-1"></i>Coming Soon
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="data-card mb-4">
+      <div class="data-card-header">
+        <div class="data-card-title"><i class="bi bi-bell me-2"></i>Notification Preferences</div>
+      </div>
+      <div class="card-body p-4">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+          <label class="form-check-label" for="emailNotif">
+            <strong>Email Notifications</strong>
+            <span class="text-muted small mb-0 d-block">Receive email updates about your account activity</span>
+          </label>
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="smsNotif">
+          <label class="form-check-label" for="smsNotif">
+            <strong>SMS Notifications</strong>
+            <span class="text-muted small mb-0 d-block">Receive text messages for important alerts</span>
+          </label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="marketingNotif">
+          <label class="form-check-label" for="marketingNotif">
+            <strong>Event Directory and Logistic Communications</strong>
+            <span class="text-muted small mb-0 d-block">Receive updates about new features and promotions</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Actions -->
+    <div class="data-card">
+      <div class="data-card-header" style="background:rgba(239,68,68,.1);">
+        <div class="data-card-title" style="color:#f87171;"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</div>
+      </div>
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h6 class="mb-1">Delete Account</h6>
+            <p class="text-muted small mb-0">Permanently delete your account and all data</p>
+          </div>
+          <button class="btn btn-sm btn-outline-danger" disabled>
+            <i class="bi bi-trash me-1"></i>Request Deletion
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .data-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--fe-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--fe-card);
+  }
+  .data-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: inherit;
+  }
+  .card-body {
+    padding: 1.5rem;
+  }
+  .form-switch .form-check-label {
+    display: block;
+    margin-left: 8px;
+  }
+  .form-switch .form-check-input {
+    width: 48px;
+    height: 24px;
+    cursor: pointer;
+  }
+</style>
+
+{% block extra_js %}
+<script>
+function togglePassword(inputId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(inputId + 'Icon');
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+</script>
+{% endblock extra_js %}
+{% endblock content %}

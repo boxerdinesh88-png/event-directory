@@ -1,0 +1,16 @@
+Django>=5.0,<6.0
+mysqlclient>=2.2.0
+Pillow>=10.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+gunicorn>=21.0.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+django-cors-headers>=4.3.0
+celery>=5.3.0
+redis>=5.0.0
+whitenoise>=6.0.0
+cloudinary>=1.36.0
+imageio-ffmpeg>=0.5.0
+pyotp>=2.9.0
+xlrd>=2.0.1

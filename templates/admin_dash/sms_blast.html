@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% block title %}SMS Blast – Event Directory and Logistic{% endblock %}
+{% block page_title %}SMS Messaging{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h5 class="text-white mb-1">SMS Broadcast System</h5>
+    <p class="text-muted small mb-0">Send event reminders and alerts via SMS to your subscribers</p>
+  </div>
+  {% if active_provider %}
+  <span class="badge badge-active rounded-pill"><i class="bi bi-check-circle-fill me-1"></i>{{ active_provider.get_provider_display }} Active</span>
+  {% else %}
+  <span class="badge badge-inactive rounded-pill"><i class="bi bi-x-circle-fill me-1"></i>No Provider Configured</span>
+  {% endif %}
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(52,211,153,.15);"><i class="bi bi-person-check-fill" style="color:#34d399;"></i></div>
+      <div class="stat-value" style="color:#34d399;">{{ stats.subscribed }}</div>
+      <div class="stat-label">Subscribed</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(99,102,241,.15);"><i class="bi bi-phone-fill" style="color:#818cf8;"></i></div>
+      <div class="stat-value" style="color:#818cf8;">{{ stats.with_phone }}</div>
+      <div class="stat-label">Have Phone</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(245,166,35,.15);"><i class="bi bi-chat-dots-fill" style="color:#fbbf24;"></i></div>
+      <div class="stat-value" style="color:#fbbf24;">{{ stats.blasts_sent }}</div>
+      <div class="stat-label">Blasts Sent</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card text-center">
+      <div class="stat-icon mx-auto mb-2" style="background:rgba(239,68,68,.15);"><i class="bi bi-send-check-fill" style="color:#f87171;"></i></div>
+      <div class="stat-value" style="color:#f87171;">{{ stats.total_sent }}</div>
+      <div class="stat-label">Total Delivered</div>
+    </div>
+  </div>
+</div>
+
+<!-- Provider Setup -->
+<div class="data-card mb-4">
+  <div class="data-card-header">
+    <div class="data-card-title"><i class="bi bi-plug-fill text-warning me-2"></i>SMS Provider Configuration</div>
+  </div>
+  <div class="p-4">
+    <div class="row g-3">
+      {% for prov in providers %}
+      <div class="col-lg-3 col-md-6">
+        <div class="rounded-3 p-3 h-100" style="background:rgba(255,255,255,.04);border:1px solid {% if prov.config and prov.config.is_active %}rgba(52,211,153,.3){% else %}var(--fe-border){% endif %};">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="fw-semibold text-white">{{ prov.name }}</div>
+            {% if prov.config and prov.config.is_active %}
+            <span class="badge badge-active rounded-pill" style="font-size:.62rem;">Active</span>
+            {% else %}
+            <span class="badge badge-inactive rounded-pill" style="font-size:.62rem;">Inactive</span>
+            {% endif %}
+          </div>
+          <div class="text-muted small mb-3" style="font-size:.73rem;">{{ prov.note }}</div>
+          <a href="{{ prov.link }}" target="_blank" class="text-warning small d-block mb-3" style="font-size:.72rem;">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Get API credentials
+          </a>
+          <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="save_sms_config" value="1">
+            <input type="hidden" name="provider" value="{{ prov.key }}">
+            {% for field_name, field_label in prov.fields %}
+            <div class="mb-2">
+              <input type="{% if 'secret' in field_name or 'token' in field_name %}password{% else %}text{% endif %}"
+                name="{{ field_name }}" class="form-control form-control-sm"
+                placeholder="{{ field_label }}"
+                value="{% if prov.config %}{% if field_name == 'api_key' %}{{ prov.config.api_key }}{% elif field_name == 'from_number' %}{{ prov.config.from_number }}{% endif %}{% endif %}">
+            </div>
+            {% endfor %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="is_active" id="act_{{ prov.key }}" value="on" {% if prov.config and prov.config.is_active %}checked{% endif %}>
+              <label class="form-check-label text-white small" for="act_{{ prov.key }}">Set as Active Provider</label>
+            </div>
+            <button type="submit" class="btn btn-sm w-100 btn-outline-warning">
+              <i class="bi bi-floppy-fill me-1"></i>Save {{ prov.name }}
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Compose & Send -->
+<div class="data-card mb-4">
+  <div class="data-card-header">
+    <div class="data-card-title"><i class="bi bi-pencil-fill text-info me-2"></i>Compose & Send SMS Blast</div>
+  </div>
+  <div class="p-4">
+    {% if not active_provider %}
+    <div class="alert" style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);color:#fbbf24;">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>Configure and activate an SMS provider above before sending blasts.
+    </div>
+    {% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="send_sms" value="1">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="mb-3">
+            <label class="form-label d-flex align-items-center justify-content-between">
+              <span>Message <span class="text-danger">*</span></span>
+              <span id="smsLen" class="text-muted" style="font-size:.73rem;">0 / 160</span>
+            </label>
+            <textarea name="message" id="smsTA" class="form-control" rows="4" maxlength="160" required
+              placeholder="Reminder: {Event_Name} is tonight at {Venue_Name}. Details: {Event_Link}"
+              oninput="updateLen()"></textarea>
+            <div class="d-flex flex-wrap gap-1 mt-2">
+              <button type="button" class="btn" style="background:rgba(245,166,35,.1);color:#fbbf24;border:1px solid rgba(245,166,35,.2);font-size:.65rem;padding:1px 8px;border-radius:20px;font-family:monospace;" onclick="insertSmsVar('{Event_Name}')">{Event_Name}</button>
+              <button type="button" class="btn" style="background:rgba(245,166,35,.1);color:#fbbf24;border:1px solid rgba(245,166,35,.2);font-size:.65rem;padding:1px 8px;border-radius:20px;font-family:monospace;" onclick="insertSmsVar('{Venue_Name}')">{Venue_Name}</button>
+              <button type="button" class="btn" style="background:rgba(245,166,35,.1);color:#fbbf24;border:1px solid rgba(245,166,35,.2);font-size:.65rem;padding:1px 8px;border-radius:20px;font-family:monospace;" onclick="insertSmsVar('{Event_Link}')">{Event_Link}</button>
+              <button type="button" class="btn" style="background:rgba(245,166,35,.1);color:#fbbf24;border:1px solid rgba(245,166,35,.2);font-size:.65rem;padding:1px 8px;border-radius:20px;font-family:monospace;" onclick="insertSmsVar('{Date}')">{Date}</button>
+              <button type="button" class="btn" style="background:rgba(245,166,35,.1);color:#fbbf24;border:1px solid rgba(245,166,35,.2);font-size:.65rem;padding:1px 8px;border-radius:20px;font-family:monospace;" onclick="insertSmsVar('{City}')">{City}</button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Send To</label>
+            <select name="recipient_type" id="recipType" class="form-select" onchange="toggleCity()">
+              <option value="all">All Subscribed Contacts with Phone ({{ stats.with_phone }})</option>
+              <option value="city">Filter by City</option>
+              <option value="custom">Custom Phone Numbers</option>
+            </select>
+          </div>
+          <div class="mb-3 d-none" id="cityField">
+            <label class="form-label">City</label>
+            <select name="target_city" class="form-select">
+              <option value="">Select city...</option>
+              {% for city in cities %}
+              <option>{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3 d-none" id="customField">
+            <label class="form-label">Phone Numbers (comma-separated)</label>
+            <textarea name="custom_numbers" class="form-control" rows="3" placeholder="+13055551234, +19545557890, ..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Schedule (leave blank to send now)</label>
+            <input type="datetime-local" name="scheduled_at" class="form-control">
+          </div>
+          <button type="submit" class="btn btn-gold w-100" {% if not active_provider %}disabled{% endif %}>
+            <i class="bi bi-send-fill me-2"></i>{% if active_provider %}Send SMS Blast{% else %}Configure Provider First{% endif %}
+          </button>
+        </div>
+        <div class="col-lg-5">
+          <label class="form-label">Phone Preview</label>
+          <div class="mx-auto" style="max-width:240px;">
+            <div class="rounded-4 p-3" style="background:#1c1c1e;border:3px solid #3a3a3c;min-height:160px;">
+              <div class="text-center text-muted mb-3" style="font-size:.65rem;">Event Directory and Logistic</div>
+              <div class="rounded-3 p-2" style="background:#2c2c2e;font-size:.78rem;color:#e5e7eb;white-space:pre-wrap;" id="phonePreview">Your SMS will appear here...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Blast History -->
+<div class="data-card">
+  <div class="data-card-header">
+    <div class="data-card-title"><i class="bi bi-clock-history text-info me-2"></i>SMS Blast History ({{ blasts|length }})</div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0">
+      <thead><tr><th>Message</th><th>Recipients</th><th>Status</th><th>Sent</th><th>Failed</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        {% for blast in blasts %}
+        <tr>
+          <td class="text-white small">{{ blast.message|truncatechars:50 }}</td>
+          <td class="text-muted small">{% if blast.recipient_type == 'city' %}{{ blast.target_city }}{% elif blast.recipient_type == 'custom' %}Custom{% else %}All{% endif %}</td>
+          <td>
+            <a href="javascript:void(0)" onclick="showBlastDetail(`{{ blast.message|escapejs }}`,`{{ blast.get_status_display }}`,`{{ blast.status }}`,{{ blast.total_sent }},{{ blast.total_failed }},`{{ blast.error_message|default:''|escapejs }}`,`{{ blast.created_at|date:'M d, Y H:i' }}`)" class="text-decoration-none">
+              <span class="badge badge-{% if blast.status == 'sent' %}active{% elif blast.status == 'failed' %}inactive{% elif blast.status == 'scheduled' %}upcoming{% else %}pending{% endif %} rounded-pill">{{ blast.status|title }}</span>
+            </a>
+          </td>
+          <td class="text-success small">{% if blast.total_sent %}{{ blast.total_sent }}{% else %}—{% endif %}</td>
+          <td class="text-danger small">{% if blast.total_failed %}{{ blast.total_failed }}{% else %}—{% endif %}</td>
+          <td class="text-muted small">{{ blast.created_at|date:"M d, Y H:i" }}</td>
+          <td>
+            <form method="POST" action="{% url 'sms_blast_delete' blast.pk %}" onsubmit="return confirm('Delete this blast record?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.7rem;"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-5">
+          <div style="font-size:2.5rem;">💬</div>
+          <div class="mt-2">No SMS blasts yet. Configure a provider above and send your first blast.</div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Blast Detail Modal -->
+<div class="modal fade" id="blastDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#1a1a2e;border:1px solid var(--fe-border);">
+      <div class="modal-header border-0">
+        <h6 class="modal-title text-white"><i class="bi bi-info-circle me-2"></i>Blast Details</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="text-muted small d-block mb-1">Status</label>
+          <span class="badge rounded-pill" id="blastDetailStatus"></span>
+        </div>
+        <div class="mb-3">
+          <label class="text-muted small d-block mb-1">Message</label>
+          <div class="rounded-2 p-2" style="background:rgba(255,255,255,.05);font-size:.82rem;color:#e5e7eb;white-space:pre-wrap;" id="blastDetailMsg"></div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <div class="rounded-2 p-2 text-center" style="background:rgba(255,255,255,.05);">
+              <div class="text-muted small">Sent</div>
+              <div class="text-success fw-semibold" id="blastDetailSent">-</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="rounded-2 p-2 text-center" style="background:rgba(255,255,255,.05);">
+              <div class="text-muted small">Failed</div>
+              <div class="text-danger fw-semibold" id="blastDetailFailed">-</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="rounded-2 p-2 text-center" style="background:rgba(255,255,255,.05);">
+              <div class="text-muted small">Date</div>
+              <div class="text-white fw-semibold" id="blastDetailDate" style="font-size:.75rem;">-</div>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3 d-none" id="blastErrorWrap">
+          <label class="text-danger small d-block mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Error Details</label>
+          <div class="rounded-2 p-2" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);font-size:.78rem;color:#fca5a5;" id="blastDetailError"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const smsTA = document.getElementById('smsTA');
+const preview = document.getElementById('phonePreview');
+smsTA.addEventListener('input', () => { preview.textContent = smsTA.value || 'Your SMS will appear here...'; });
+
+function updateLen() {
+  const len = smsTA.value.length;
+  const el = document.getElementById('smsLen');
+  el.textContent = len + ' / 160';
+  el.style.color = len > 140 ? '#f87171' : len > 120 ? '#fbbf24' : '#6b7280';
+}
+function insertSmsVar(v) {
+  const s = smsTA.selectionStart;
+  smsTA.value = smsTA.value.slice(0,s) + v + smsTA.value.slice(smsTA.selectionEnd);
+  smsTA.focus();
+  smsTA.setSelectionRange(s+v.length,s+v.length);
+  updateLen();
+  preview.textContent = smsTA.value;
+}
+function toggleCity() {
+  const val = document.getElementById('recipType').value;
+  document.getElementById('cityField').classList.toggle('d-none', val !== 'city');
+  document.getElementById('customField').classList.toggle('d-none', val !== 'custom');
+}
+function showBlastDetail(message, statusText, statusCode, sent, failed, error, date) {
+  const stEl = document.getElementById('blastDetailStatus');
+  stEl.textContent = statusText;
+  const sc = {sent:['rgba(52,211,153,.15)','#34d399'],failed:['rgba(239,68,68,.15)','#f87171'],scheduled:['rgba(99,102,241,.15)','#818cf8'],draft:['rgba(156,163,175,.15)','#9ca3af'],sending:['rgba(245,166,35,.15)','#fbbf24']};
+  const c = sc[statusCode] || sc.draft;
+  stEl.style.background = c[0]; stEl.style.color = c[1];
+  document.getElementById('blastDetailMsg').textContent = message || '(no message)';
+  document.getElementById('blastDetailSent').textContent = sent || 0;
+  document.getElementById('blastDetailFailed').textContent = failed || 0;
+  document.getElementById('blastDetailDate').textContent = date;
+  const errWrap = document.getElementById('blastErrorWrap');
+  if (error) { errWrap.classList.remove('d-none'); document.getElementById('blastDetailError').textContent = error; }
+  else { errWrap.classList.add('d-none'); }
+  new bootstrap.Modal(document.getElementById('blastDetailModal')).show();
+}
+</script>
+{% endblock %}
